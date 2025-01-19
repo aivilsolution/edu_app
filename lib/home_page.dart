@@ -1,16 +1,25 @@
-import 'package:edu_app/course_card.dart';
-import 'package:edu_app/tasks.dart';
 import 'package:flutter/material.dart';
+import 'package:edu_app/widgets/course_card.dart';
+import 'package:edu_app/widgets/task.dart';
+import 'package:edu_app/enums/task.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final image =
+        "https://upload.wikimedia.org/wikipedia/commons/4/49/A_black_image.jpg";
+    final avatar =
+        "https://www.pngplay.com/wp-content/uploads/12/User-Avatar-Profile-PNG-Pic-Clip-Art-Background.png";
     final List<String> images = [
-      'https://as2.ftcdn.net/jpg/04/07/37/73/1000_F_407377396_PQvbEFg8g58qQ7FWzwaSNpJUkq2yUsqk.jpg',
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQUC6HnJ2Awh0Boa8SjWhl7NS7XUMXSXtvKnw&s',
-      'https://static.vecteezy.com/system/resources/thumbnails/007/227/554/small/mathematics-word-concepts-banner-presentation-website-isolated-lettering-typography-idea-with-linear-icons-algebra-geometry-statistics-basic-maths-outline-illustration-vector.jpg'
+      image,
+      image,
+      image,
+      image,
+      image,
+      image,
+      image,
     ];
 
     return Scaffold(
@@ -33,25 +42,64 @@ class HomePage extends StatelessWidget {
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "My Courses",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "My Courses",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            SizedBox(height: 20),
-            CourseCard(
-              images: images,
-            ),
-            SizedBox(height: 40),
-            Tasks(),
-          ],
+              SizedBox(height: 20),
+              CourseCard(
+                images: images,
+              ),
+              SizedBox(height: 40),
+              Text(
+                "Tasks",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 20),
+              ListView.builder(
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: 5,
+                itemBuilder: (context, index) {
+                  return Column(
+                    children: [
+                      Task(
+                        subject: TaskSubject.math,
+                        priority: TaskPriority.high,
+                        status: TaskStatus.todo,
+                        title: 'The task',
+                        description: 'Description',
+                        dateTime: DateTime.now(),
+                        assignorAvatarUrl: avatar,
+                        assigneeAvatarUrls: [
+                          avatar,
+                          avatar,
+                          avatar,
+                          avatar,
+                          avatar,
+                          avatar,
+                          avatar,
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

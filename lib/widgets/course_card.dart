@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 
 class CourseCard extends StatefulWidget {
   final List<String> images;
+  final bool enableInfiniteScroll;
   final bool enlargeCenterPage;
 
   const CourseCard({
     super.key,
     required this.images,
+    this.enableInfiniteScroll = true,
     this.enlargeCenterPage = true,
   });
 
@@ -27,6 +29,7 @@ class _CourseCardState extends State<CourseCard> {
         CarouselSlider(
           controller: _controller,
           options: CarouselOptions(
+            enableInfiniteScroll: widget.enableInfiniteScroll,
             enlargeCenterPage: widget.enlargeCenterPage,
             onPageChanged: (index, reason) {
               setState(() {
