@@ -18,21 +18,30 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: const CustomAppBar(actions: [
-        IconButton(
-          icon: Icon(Icons.chat_outlined),
-          onPressed: null,
-        ),
-      ]),
+      backgroundColor: theme.colorScheme.background,
+      appBar: CustomAppBar(
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.chat_outlined,
+              color: theme.iconTheme.color,
+            ),
+            onPressed: null,
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                color: Colors.blueGrey,
-                borderRadius: BorderRadius.vertical(
+              decoration: BoxDecoration(
+                color: theme
+                    .appBarTheme.backgroundColor, // Using same color as AppBar
+                borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(40),
                 ),
               ),
@@ -53,16 +62,18 @@ class HomePage extends StatelessWidget {
                             const EdgeInsets.only(top: 18, right: 18, left: 18),
                         child: Row(
                           children: [
-                            const Text(
+                            Text(
                               "My Courses",
-                              style: TextStyle(
-                                fontSize: 20,
+                              style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const Spacer(),
                             IconButton(
-                              icon: const Icon(Icons.arrow_forward),
+                              icon: Icon(
+                                Icons.arrow_forward,
+                                color: theme.iconTheme.color,
+                              ),
                               iconSize: 20,
                               onPressed: () {
                                 Navigator.of(context).push(
@@ -81,12 +92,11 @@ class HomePage extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const Padding(
-                    padding: EdgeInsets.only(left: 18),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 18),
                     child: Text(
                       "Tasks",
-                      style: TextStyle(
-                        fontSize: 20,
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),

@@ -6,6 +6,7 @@ class SearchTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TextFormField(
         decoration: InputDecoration(
+          filled: false,
           prefixIcon: const Icon(Icons.search, color: Colors.grey),
           labelText: 'Search',
           border: OutlineInputBorder(
