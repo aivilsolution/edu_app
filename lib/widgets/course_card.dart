@@ -1,4 +1,5 @@
 import 'package:carousel_slider_plus/carousel_slider_plus.dart';
+import 'package:edu_app/widgets/course_page.dart';
 import 'package:flutter/material.dart';
 
 class CourseCard extends StatefulWidget {
@@ -38,12 +39,21 @@ class _CourseCardState extends State<CourseCard> {
             },
           ),
           items: widget.images.map((item) {
-            return ClipRRect(
-              borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-              child: Image.network(
-                item,
-                fit: BoxFit.cover,
-                width: double.infinity,
+            return GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => CoursePage(),
+                  ),
+                );
+              },
+              child: ClipRRect(
+                borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+                child: Image.network(
+                  item,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                ),
               ),
             );
           }).toList(),

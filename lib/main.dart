@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       title: 'Educational app',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Color.fromRGBO(137, 120, 244, 1),
+          seedColor: Colors.blueGrey,
           brightness: Brightness.dark,
         ),
         useMaterial3: true,
