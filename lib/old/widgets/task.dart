@@ -1,8 +1,8 @@
-import 'package:edu_app/functions/get_month_name.dart';
-import 'package:edu_app/widgets/build_pill.dart';
-import 'package:edu_app/widgets/avatar_list.dart';
+import 'package:edu_app/old/functions/get_month_name.dart';
+import 'package:edu_app/old/widgets/build_pill.dart';
+import 'package:edu_app/old/widgets/avatar_list.dart';
 import 'package:flutter/material.dart';
-import 'package:edu_app/enums/task.dart';
+import 'package:edu_app/old/enums/task.dart';
 
 class Task extends StatelessWidget {
   final TaskSubject subject;

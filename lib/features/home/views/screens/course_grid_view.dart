@@ -1,22 +1,23 @@
+import 'package:edu_app/features/course/views/screens/course_page.dart';
+import 'package:edu_app/shared/widgets/course_card.dart';
 import 'package:flutter/material.dart';
+import 'package:edu_app/features/course/models/sample_data.dart';
 
 class CoursesGridView extends StatelessWidget {
-  final List<String> images;
-  final int crossAxisCount; // Number of images per row
-  final double spacing; // Space between grid items
+  final int crossAxisCount;
+  final double spacing;
 
   const CoursesGridView({
     super.key,
-    required this.images,
-    this.crossAxisCount = 2, // Default 2 images per row
-    this.spacing = 16.0, // Default spacing
+    this.crossAxisCount = 2,
+    this.spacing = 16.0,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           "My Courses",
           style: TextStyle(
             fontSize: 20,
@@ -26,22 +27,22 @@ class CoursesGridView extends StatelessWidget {
       ),
       body: GridView.builder(
         shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
         padding: EdgeInsets.all(spacing),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: crossAxisCount,
           crossAxisSpacing: spacing,
           mainAxisSpacing: spacing,
-          childAspectRatio: 1, // Makes grid items square
+          childAspectRatio: 1,
         ),
-        itemCount: images.length,
+        itemCount: courses.length,
         itemBuilder: (context, index) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(16.0),
-            child: Image.network(
-              images[index],
-              fit: BoxFit.cover,
+          return GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => CoursePage(course: courses[index]),
+              ),
             ),
+            child: CourseCard(name: courses[index].name, fontSize: 18),
           );
         },
       ),

@@ -12,8 +12,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Educational app',
-      theme: AppTheme.darkTheme,
+      theme: CourseAppTheme.darkTheme,
       home: const HomePage(),
     );
   }

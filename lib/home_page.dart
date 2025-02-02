@@ -1,36 +1,110 @@
-import 'package:edu_app/widgets/custom_app_bar.dart';
-import 'package:edu_app/widgets/courses_grid_view.dart';
-import 'package:edu_app/widgets/custom_bottom_navigation_bar.dart';
-import 'package:edu_app/widgets/search_text_field.dart';
 import 'package:flutter/material.dart';
-import 'package:edu_app/widgets/course_card.dart';
-import 'package:edu_app/widgets/task_list.dart';
+import 'package:edu_app/features/home/views/screens/announcement_page.dart';
+import 'package:edu_app/features/home/views/screens/course_grid_view.dart';
+import 'package:edu_app/features/home/views/widgets/course_carousel_view.dart';
+import 'package:edu_app/shared/widgets/custom_app_bar.dart';
+import 'package:edu_app/old/widgets/search_text_field.dart';
+import 'package:edu_app/old/widgets/task_list.dart';
 
-class HomePage extends StatelessWidget {
+class CustomBottomNavBar extends StatelessWidget {
+  final int currentIndex;
+  final Function(int) onTap;
+
+  const CustomBottomNavBar({
+    Key? key,
+    required this.currentIndex,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomNavigationBar(
+      currentIndex: currentIndex,
+      onTap: onTap,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_today),
+          label: 'Calendar',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.smart_toy),
+          label: 'AI',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Profile',
+        ),
+      ],
+    );
+  }
+}
+
+// Usage example in a Scaffold
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  final List<Widget> _pages = [
+    HomePage(),
+    CalendarPage(),
+    AiPage(),
+    ProfilePage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+      ),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
-  final String image =
-      "https://t4.ftcdn.net/jpg/02/61/49/05/360_F_261490536_nJ5LSRAVZA0CK9Nvt2E1fXJVUfpiqvhT.jpg";
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   final String avatar =
       "https://www.pngplay.com/wp-content/uploads/12/User-Avatar-Profile-PNG-Pic-Clip-Art-Background.png";
-
-  List<String> get images => List.filled(7, image);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       appBar: CustomAppBar(
+        title: "Educational App",
         actions: [
           IconButton(
-            icon: Icon(
-              Icons.chat_outlined,
-              color: theme.iconTheme.color,
+            icon: Icon(Icons.notifications_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => AnnouncementsPage(),
+              ),
             ),
-            onPressed: null,
-          ),
+          )
         ],
       ),
       body: SingleChildScrollView(
@@ -39,8 +113,7 @@ class HomePage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: theme
-                    .appBarTheme.backgroundColor, // Using same color as AppBar
+                color: theme.appBarTheme.backgroundColor,
                 borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(40),
                 ),
@@ -78,9 +151,7 @@ class HomePage extends StatelessWidget {
                               onPressed: () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        CoursesGridView(images: images),
-                                  ),
+                                      builder: (context) => CoursesGridView()),
                                 );
                               },
                             ),
@@ -88,7 +159,10 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      CourseCard(images: images),
+                      SizedBox(
+                        height: 250,
+                        child: CourseCarouselView(),
+                      )
                     ],
                   ),
                   const SizedBox(height: 20),
@@ -109,7 +183,27 @@ class HomePage extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: const CustomBottomNav(),
     );
+  }
+}
+
+class CalendarPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('Calendar Page'));
+  }
+}
+
+class AiPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('AI Page'));
+  }
+}
+
+class ProfilePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('Profile Page'));
   }
 }

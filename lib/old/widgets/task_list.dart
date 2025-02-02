@@ -1,5 +1,5 @@
-import 'package:edu_app/enums/task.dart';
-import 'package:edu_app/widgets/task.dart';
+import 'package:edu_app/old/enums/task.dart';
+import 'package:edu_app/old/widgets/task.dart';
 import 'package:flutter/material.dart';
 
 class TasksList extends StatelessWidget {
