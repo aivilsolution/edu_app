@@ -75,7 +75,7 @@ class _AnnouncementTabsState extends State<_AnnouncementTabs> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
