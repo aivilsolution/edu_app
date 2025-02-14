@@ -1,31 +1,36 @@
-// lib/features/ai_chat/pages/ai_page.dart
-import 'package:edu_app/features/ai/bloc/ai_chat_bloc.dart';
-import 'package:edu_app/features/ai/bloc/ai_chat_event.dart';
-import 'package:edu_app/shared/widgets/custom_app_bar.dart';
+import 'package:edu_app/features/ai/views/pages/chats_page.dart';
+import 'package:edu_app/features/ai/views/pages/recommedation_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../widgets/message_list.dart';
-import '../widgets/input_area.dart';
 
 class AiPage extends StatelessWidget {
   const AiPage({super.key});
 
+  static const _tabs = [
+    Tab(text: 'Chat'),
+    Tab(text: 'Recommendation'),
+  ];
+
+  static const _views = [
+    ChatsPage(),
+    RecommendationPage(),
+  ];
+
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AiChatBloc()..add(InitializeChatEvent()),
-      child: Scaffold(
-        appBar: const CustomAppBar(
-          title: "AI",
-          centerTitle: true,
+  Widget build(BuildContext context) => DefaultTabController(
+        length: _tabs.length,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('AI'),
+            centerTitle: true,
+            bottom: TabBar(
+              labelColor: Theme.of(context).colorScheme.primary,
+              indicatorSize: TabBarIndicatorSize.label,
+              dividerColor: Colors.transparent,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              tabs: _tabs,
+            ),
+          ),
+          body: const TabBarView(children: _views),
         ),
-        body: const Column(
-          children: [
-            Expanded(child: MessageList()),
-            InputArea(),
-          ],
-        ),
-      ),
-    );
-  }
+      );
 }

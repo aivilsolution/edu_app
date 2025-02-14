@@ -1,77 +1,71 @@
+import 'package:edu_app/shared/widgets/search_widget.dart';
 import 'package:flutter/material.dart';
 
-class AnnouncementsPage extends StatelessWidget {
-  const AnnouncementsPage({super.key});
+class NotificationsPage extends StatelessWidget {
+  const NotificationsPage({super.key});
+
+  static const double _padding = 16;
+  static const double _spacing = 20;
+  static const double _cardSpacing = 12;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios),
+          icon: const Icon(Icons.arrow_back_ios),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Announcements'),
+        title: const Text('Notifications'),
         actions: [
           IconButton(
-            icon: Icon(Icons.filter_list),
-            onPressed: () {
-              // Add filter functionality
-            },
+            icon: const Icon(Icons.filter_list),
+            onPressed: () {},
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildSearchBar(),
-          const SizedBox(height: 20),
-          _AnnouncementTabs(),
-          const SizedBox(height: 20),
-          ...List.generate(
-            10,
-            (index) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _DetailedAnnouncementCard(
-                announcement: Announcement(
-                  title: 'Important Course Update ${index + 1}',
-                  description:
-                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-                  time: '${index + 1}h ago',
-                  icon: Icons.notification_important,
-                  isRead: index > 2,
+      body: Padding(
+        padding: const EdgeInsets.all(_padding),
+        child: Column(
+          children: [
+            const SearchWidget(),
+            const SizedBox(height: _spacing),
+            const _NotificationTabs(),
+            const SizedBox(height: _spacing),
+            Expanded(
+              child: ListView.separated(
+                itemCount: 10,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: _cardSpacing),
+                itemBuilder: (context, index) => _DetailedNotificationCard(
+                  notification: Notification(
+                    title: 'Important Course Update ${index + 1}',
+                    description:
+                        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                    time: '${index + 1}h ago',
+                    icon: Icons.notification_important,
+                    isRead: index > 2,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.mark_email_read),
-        onPressed: () {
-          // Mark all as read functionality
-        },
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Card(
-      child: TextField(
-        decoration: InputDecoration(
-          hintText: 'Search announcements...',
-          prefixIcon: Icon(Icons.search),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16),
+          ],
         ),
       ),
     );
   }
 }
 
-class _AnnouncementTabsState extends State<_AnnouncementTabs> {
+class _NotificationTabs extends StatefulWidget {
+  const _NotificationTabs();
+
+  @override
+  State<_NotificationTabs> createState() => _NotificationTabsState();
+}
+
+class _NotificationTabsState extends State<_NotificationTabs> {
   int _selectedIndex = 0;
-  final _tabs = ['All', 'Unread', 'Important'];
+  static const List<String> _tabs = ['All', 'Unread'];
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +74,7 @@ class _AnnouncementTabsState extends State<_AnnouncementTabs> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _tabs.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 12),
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, index) => _buildTab(index, context),
       ),
     );
@@ -109,10 +103,10 @@ class _AnnouncementTabsState extends State<_AnnouncementTabs> {
   }
 }
 
-class _DetailedAnnouncementCard extends StatelessWidget {
-  final Announcement announcement;
+class _DetailedNotificationCard extends StatelessWidget {
+  const _DetailedNotificationCard({required this.notification});
 
-  const _DetailedAnnouncementCard({required this.announcement});
+  final Notification notification;
 
   @override
   Widget build(BuildContext context) {
@@ -125,7 +119,7 @@ class _DetailedAnnouncementCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(announcement.icon),
+                Icon(notification.icon),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -136,9 +130,9 @@ class _DetailedAnnouncementCard extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              announcement.title,
+                              notification.title,
                               style: TextStyle(
-                                fontWeight: announcement.isRead
+                                fontWeight: notification.isRead
                                     ? FontWeight.normal
                                     : FontWeight.bold,
                               ),
@@ -146,18 +140,18 @@ class _DetailedAnnouncementCard extends StatelessWidget {
                           ),
                           Row(
                             children: [
-                              if (!announcement.isRead)
+                              if (!notification.isRead)
                                 Container(
                                   width: 8,
                                   height: 8,
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: Colors.blue,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
                               const SizedBox(width: 8),
                               Text(
-                                announcement.time,
+                                notification.time,
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
@@ -166,7 +160,7 @@ class _DetailedAnnouncementCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        announcement.description,
+                        notification.description,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
@@ -180,11 +174,11 @@ class _DetailedAnnouncementCard extends StatelessWidget {
               children: [
                 TextButton(
                   onPressed: () {},
-                  child: Text('Mark as read'),
+                  child: const Text('Mark as read'),
                 ),
                 TextButton(
                   onPressed: () {},
-                  child: Text('View Details'),
+                  child: const Text('View Details'),
                 ),
               ],
             ),
@@ -195,23 +189,18 @@ class _DetailedAnnouncementCard extends StatelessWidget {
   }
 }
 
-class _AnnouncementTabs extends StatefulWidget {
-  @override
-  _AnnouncementTabsState createState() => _AnnouncementTabsState();
-}
-
-class Announcement {
-  final String title;
-  final String description;
-  final String time;
-  final IconData icon;
-  final bool isRead;
-
-  const Announcement({
+class Notification {
+  const Notification({
     required this.title,
     required this.description,
     required this.time,
     required this.icon,
     this.isRead = false,
   });
+
+  final String title;
+  final String description;
+  final String time;
+  final IconData icon;
+  final bool isRead;
 }

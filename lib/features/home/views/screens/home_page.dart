@@ -1,13 +1,13 @@
+import 'package:edu_app/shared/widgets/search_widget.dart';
+import 'package:flutter/material.dart';
 import 'package:edu_app/features/communication/views/pages/chat_page.dart';
 import 'package:edu_app/shared/widgets/custom_nav_bar.dart';
-import 'package:flutter/material.dart';
 import 'package:edu_app/features/ai/views/pages/ai_page.dart';
 import 'package:edu_app/features/calendar/views/pages/calendar_page.dart';
 import 'package:edu_app/features/profile/views/pages/profile_page.dart';
-import 'package:edu_app/features/home/views/screens/announcement_page.dart';
+import 'package:edu_app/features/home/views/screens/notification_page.dart';
 import 'package:edu_app/features/home/views/screens/course_grid_view.dart';
 import 'package:edu_app/features/home/views/widgets/course_carousel_view.dart';
-import 'package:edu_app/old/widgets/search_text_field.dart';
 import 'package:edu_app/old/widgets/task_list.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     _HomeContent(),
     CalendarPage(),
-    AiPage(),
+    ChatPage(),
     ProfilePage(),
   ];
 
@@ -48,8 +48,6 @@ class _HomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Educational App'),
@@ -58,15 +56,15 @@ class _HomeContent extends StatelessWidget {
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const AnnouncementsPage()),
+              MaterialPageRoute(builder: (_) => NotificationsPage()),
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chat_outlined),
+            icon: const Icon(Icons.smart_toy_outlined),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ChatPage(),
+                builder: (_) => AiPage(),
               ),
             ),
           ),
@@ -76,7 +74,7 @@ class _HomeContent extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: const SearchTextField(),
+            child: const SearchWidget(),
           ),
           Padding(
             padding: const EdgeInsets.all(16),
@@ -104,7 +102,7 @@ class _HomeContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tasks', style: theme.textTheme.titleLarge),
+                Text('Tasks', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 16),
                 const TasksList(
                   avatar:

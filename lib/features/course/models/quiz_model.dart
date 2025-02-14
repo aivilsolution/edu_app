@@ -1,12 +1,11 @@
 part of 'course_model.dart';
 
-// Quiz model
 class Quiz {
   final String id;
   final String title;
   final String description;
   final DateTime date;
-  final int duration; // in minutes
+  final int duration;
   final int totalPoints;
   final bool isCompleted;
   final double? score;
@@ -55,5 +54,4 @@ class Quiz {
   }
 }
 
-// Quiz type enum
 enum QuizType { online, inPerson, takehome }

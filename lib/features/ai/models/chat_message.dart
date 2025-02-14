@@ -1,4 +1,3 @@
-// lib/features/ai_chat/models/chat_message.dart
 import 'package:flutter/material.dart';
 
 class ChatMessage extends StatelessWidget {

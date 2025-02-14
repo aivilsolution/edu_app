@@ -1,6 +1,4 @@
-// lib/features/ai_chat/bloc/ai_chat_state.dart
-import 'package:equatable/equatable.dart';
-import '../models/chat_message.dart';
+part of 'ai_chat_bloc.dart';
 
 class AiChatState extends Equatable {
   final List<ChatMessage> messages;
@@ -17,12 +15,13 @@ class AiChatState extends Equatable {
     List<ChatMessage>? messages,
     bool? isLoading,
     String? error,
-  }) =>
-      AiChatState(
-        messages: messages ?? this.messages,
-        isLoading: isLoading ?? this.isLoading,
-        error: error ?? this.error,
-      );
+  }) {
+    return AiChatState(
+      messages: messages ?? this.messages,
+      isLoading: isLoading ?? this.isLoading,
+      error: error ?? this.error,
+    );
+  }
 
   @override
   List<Object?> get props => [messages, isLoading, error];

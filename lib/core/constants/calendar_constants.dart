@@ -1,6 +1,6 @@
 class CalendarConstants {
   // Date selector constants
-  static const int visibleDays = 5;
+  static const int visibleDays = 14;
   static const double dateItemWidth = 65.0;
   static const double dateItemSpacing = 4.0;
   static const double dateItemVerticalPadding = 8.0;

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-class DateSelector extends StatelessWidget {
+class DateSelector extends StatefulWidget {
   final DateTime selectedDay;
   final DateTime focusedDay;
   final VoidCallback onTap;
@@ -18,10 +18,67 @@ class DateSelector extends StatelessWidget {
     required this.onDateSelected,
   });
 
+  @override
+  State<DateSelector> createState() => _DateSelectorState();
+}
+
+class _DateSelectorState extends State<DateSelector> {
+  late ScrollController _scrollController;
+  late List<DateTime> _visibleDays;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _visibleDays =
+        generateDaysAround(widget.selectedDay, CalendarConstants.visibleDays);
+    WidgetsBinding.instance.addPostFrameCallback(_scrollToSelectedDate);
+  }
+
+  @override
+  void didUpdateWidget(covariant DateSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedDay != oldWidget.selectedDay) {
+      _visibleDays =
+          generateDaysAround(widget.selectedDay, CalendarConstants.visibleDays);
+      WidgetsBinding.instance.addPostFrameCallback(_scrollToSelectedDate);
+    }
+  }
+
+  void _scrollToSelectedDate(Duration duration) {
+    final selectedIndex = _visibleDays.indexWhere(
+      (date) => isSameDay(date, widget.selectedDay),
+    );
+
+    if (selectedIndex != -1 && _scrollController.hasClients) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final itemWidth = CalendarConstants.dateItemWidth +
+          2 * CalendarConstants.dateItemSpacing;
+      final offset =
+          selectedIndex * itemWidth - (screenWidth / 2 - itemWidth / 2);
+
+      _scrollController.animateTo(
+        offset.clamp(0, _scrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   Widget _buildDateItem(
-      DateTime date, bool isSelected, bool isToday, ThemeData theme) {
+    DateTime date,
+    bool isSelected,
+    bool isToday,
+    ThemeData theme,
+  ) {
     return GestureDetector(
-      onTap: () => onDateSelected(date),
+      onTap: () => widget.onDateSelected(date),
       child: Container(
         width: CalendarConstants.dateItemWidth,
         margin: EdgeInsets.symmetric(
@@ -73,13 +130,12 @@ class DateSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final days = generateDaysAround(selectedDay, CalendarConstants.visibleDays);
     final now = DateTime.now();
 
     return Column(
       children: [
         GestureDetector(
-          onTap: onTap,
+          onTap: widget.onTap,
           child: Container(
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
@@ -111,7 +167,7 @@ class DateSelector extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        DateFormat('MMMM yyyy').format(focusedDay),
+                        DateFormat('MMMM yyyy').format(widget.focusedDay),
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -130,12 +186,13 @@ class DateSelector extends StatelessWidget {
         SizedBox(
           height: 100,
           child: ListView.builder(
+            controller: _scrollController,
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
-            itemCount: days.length,
+            itemCount: _visibleDays.length,
             itemBuilder: (context, index) {
-              final date = days[index];
-              final isSelected = isSameDay(date, selectedDay);
+              final date = _visibleDays[index];
+              final isSelected = isSameDay(date, widget.selectedDay);
               final isToday = isSameDay(date, now);
               return _buildDateItem(date, isSelected, isToday, theme);
             },

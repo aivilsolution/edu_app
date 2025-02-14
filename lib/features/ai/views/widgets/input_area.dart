@@ -1,7 +1,4 @@
-// lib/features/ai_chat/widgets/input_area.dart
 import 'package:edu_app/features/ai/bloc/ai_chat_bloc.dart';
-import 'package:edu_app/features/ai/bloc/ai_chat_event.dart';
-import 'package:edu_app/features/ai/bloc/ai_chat_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,6 +12,22 @@ class InputArea extends StatefulWidget {
 class _InputAreaState extends State<InputArea> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _sendMessage(BuildContext context, String text) {
+    final message = text.trim();
+    if (message.isNotEmpty) {
+      context.read<AiChatBloc>().add(SendMessageEvent(message));
+      _textController.clear();
+      _focusNode.requestFocus();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,16 +54,19 @@ class _InputAreaState extends State<InputArea> {
                   focusNode: _focusNode,
                   decoration: const InputDecoration(
                     hintText: 'Type a message...',
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12),
                   ),
                   onSubmitted: (text) => _sendMessage(context, text),
+                  textInputAction: TextInputAction.send,
                 ),
               ),
               const SizedBox(width: 10),
-              FloatingActionButton.small(
+              IconButton(
                 onPressed: state.isLoading
                     ? null
                     : () => _sendMessage(context, _textController.text),
-                child: Icon(
+                icon: Icon(
                   state.isLoading ? Icons.pending_outlined : Icons.send,
                 ),
               ),
@@ -59,13 +75,5 @@ class _InputAreaState extends State<InputArea> {
         );
       },
     );
-  }
-
-  void _sendMessage(BuildContext context, String text) {
-    if (text.trim().isNotEmpty) {
-      context.read<AiChatBloc>().add(SendMessageEvent(text));
-      _textController.clear();
-      _focusNode.requestFocus();
-    }
   }
 }

@@ -1,12 +1,11 @@
 part of 'course_model.dart';
 
-// Lab model
 class Lab {
   final String id;
   final String title;
   final String description;
   final DateTime date;
-  final int duration; // in minutes
+  final int duration;
   final bool isAttended;
   final double? score;
   final String location;

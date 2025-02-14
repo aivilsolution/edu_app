@@ -1,6 +1,5 @@
 part of 'course_model.dart';
 
-// Assignment model
 class Assignment {
   final String id;
   final String title;

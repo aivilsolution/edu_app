@@ -1,10 +1,9 @@
-// lib/features/ai_chat/widgets/message_list.dart
 import 'package:edu_app/features/ai/bloc/ai_chat_bloc.dart';
-import 'package:edu_app/features/ai/bloc/ai_chat_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'empty_state.dart';
+
 import 'animated_message_wrapper.dart';
+import 'empty_state.dart';
 
 class MessageList extends StatefulWidget {
   const MessageList({super.key});
@@ -19,7 +18,17 @@ class _MessageListState extends State<MessageList> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
+  }
+
+  @override
+  void didUpdateWidget(covariant MessageList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback(_afterLayout);
+  }
+
+  void _afterLayout(Duration timeStamp) {
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -33,9 +42,14 @@ class _MessageListState extends State<MessageList> {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return BlocConsumer<AiChatBloc, AiChatState>(
-      listener: (context, state) => _scrollToBottom(),
+    return BlocBuilder<AiChatBloc, AiChatState>(
       builder: (context, state) {
         if (state.messages.isEmpty) {
           return const EmptyState();
@@ -44,8 +58,10 @@ class _MessageListState extends State<MessageList> {
         return ListView.builder(
           controller: _scrollController,
           itemCount: state.messages.length,
-          itemBuilder: (context, index) =>
-              AnimatedMessageWrapper(message: state.messages[index]),
+          itemBuilder: (context, index) => AnimatedMessageWrapper(
+            message: state.messages[index],
+            key: ValueKey(state.messages[index].hashCode),
+          ),
         );
       },
     );

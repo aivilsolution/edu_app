@@ -1,6 +1,5 @@
 part of 'course_model.dart';
 
-// Instructor  model
 class Professor {
   final String id;
   final String name;
