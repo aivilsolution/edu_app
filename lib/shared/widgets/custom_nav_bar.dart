@@ -36,11 +36,11 @@ class CustomNavBar extends StatelessWidget {
         NavigationDestination(
           icon: Padding(
             padding: EdgeInsets.all(8),
-            child: Icon(Icons.chat_outlined),
+            child: Icon(Icons.smart_toy_outlined),
           ),
           selectedIcon: Padding(
             padding: EdgeInsets.all(8),
-            child: Icon(Icons.chat_rounded),
+            child: Icon(Icons.smart_toy_rounded),
           ),
           label: '',
         ),

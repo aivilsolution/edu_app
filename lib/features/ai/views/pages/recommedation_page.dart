@@ -29,9 +29,9 @@ class PracticeSection extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4),
           child: Text(
             'Practice Questions',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(height: 16),
@@ -53,9 +53,9 @@ class LearningMaterialsSection extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4),
           child: Text(
             'Learning Materials',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         const SizedBox(height: 16),
@@ -110,8 +110,8 @@ class TopicCard extends StatelessWidget {
                     Text(
                       topic.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -176,8 +176,8 @@ class MaterialCard extends StatelessWidget {
                     Text(
                       content.title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -201,21 +201,9 @@ class MaterialCard extends StatelessWidget {
 }
 
 enum QuestionTopic {
-  dataStructures(
-    name: 'Data Structures',
-    chapterId: 1,
-    questionId: 101,
-  ),
-  algorithms(
-    name: 'Algorithms',
-    chapterId: 2,
-    questionId: 102,
-  ),
-  problemSolving(
-    name: 'Problem Solving',
-    chapterId: 3,
-    questionId: 103,
-  );
+  dataStructures(name: 'Data Structures', chapterId: 1, questionId: 101),
+  algorithms(name: 'Algorithms', chapterId: 2, questionId: 102),
+  problemSolving(name: 'Problem Solving', chapterId: 3, questionId: 103);
 
   final String name;
   final int chapterId;
@@ -236,11 +224,7 @@ enum ReviewContent {
     icon: Icons.account_tree,
     duration: 15,
   ),
-  sorting(
-    title: 'Advanced Sorting Techniques',
-    icon: Icons.sort,
-    duration: 20,
-  ),
+  sorting(title: 'Advanced Sorting Techniques', icon: Icons.sort, duration: 20),
   optimization(
     title: 'Optimization Strategies',
     icon: Icons.speed,

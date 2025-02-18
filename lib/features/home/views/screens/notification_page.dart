@@ -28,8 +28,6 @@ class NotificationsPage extends StatelessWidget {
         padding: const EdgeInsets.all(_padding),
         child: Column(
           children: [
-            const SearchWidget(),
-            const SizedBox(height: _spacing),
             const _NotificationTabs(),
             const SizedBox(height: _spacing),
             Expanded(

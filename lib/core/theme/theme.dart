@@ -1,101 +1,136 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static const _colors = {
-    'background': Color.fromARGB(255, 0, 0, 0),
-    'surface': Color.fromARGB(255, 18, 18, 18),
-    'primary': Color.fromARGB(255, 45, 45, 45),
-    'accent': Color.fromARGB(255, 224, 224, 224),
-    'text': Colors.white,
-    'textSecondary': Color.fromARGB(255, 148, 163, 184),
-    'border': Color.fromARGB(255, 30, 41, 59),
-  };
+  static const _dark = Color(0xFF121212);
+  static const _darker = Color(0xFF1E1E1E);
+  static const _text = Color(0xFFF5F5F5);
+  static const _borderColor = Color(0xFF2C2C2C);
 
-  static final _baseTextTheme = TextTheme(
-    titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-    titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-    bodyLarge: TextStyle(fontSize: 16),
-    bodyMedium: TextStyle(fontSize: 14),
-    bodySmall: TextStyle(fontSize: 12),
+  static const _textTheme = TextTheme(
+    displayLarge: TextStyle(
+      fontSize: 32,
+      fontWeight: FontWeight.w700,
+      height: 1.3,
+    ),
+    displayMedium: TextStyle(
+      fontSize: 28,
+      fontWeight: FontWeight.w600,
+      height: 1.3,
+    ),
+    displaySmall: TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.w600,
+      height: 1.3,
+    ),
+    headlineLarge: TextStyle(
+      fontSize: 22,
+      fontWeight: FontWeight.w600,
+      height: 1.4,
+    ),
+    headlineMedium: TextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.w600,
+      height: 1.4,
+    ),
+    titleLarge: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+      height: 1.4,
+    ),
+    titleMedium: TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+      height: 1.4,
+    ),
+    titleSmall: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+      height: 1.4,
+    ),
+    bodyLarge: TextStyle(fontSize: 16, height: 1.5),
+    bodyMedium: TextStyle(fontSize: 14, height: 1.5),
+    bodySmall: TextStyle(fontSize: 12, height: 1.5),
+    labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
   );
 
-  static ThemeData get lightTheme => ThemeData(
-        brightness: Brightness.light,
-        primaryColor: _colors['accent'],
-        scaffoldBackgroundColor: Colors.white,
-        cardTheme: CardTheme(
-          color: Colors.white,
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.grey[200]!),
-          ),
-        ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          iconTheme: IconThemeData(color: _colors['accent']),
-          titleTextStyle: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        textTheme: _baseTextTheme.apply(
-          bodyColor: Colors.black87,
-          displayColor: Colors.black,
-        ),
-        iconTheme: IconThemeData(color: _colors['accent']),
-      );
+  static OutlineInputBorder _buildBorder([Color? color]) => OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: BorderSide(
+      color: color ?? _borderColor,
+      width: color != null ? 2 : 1,
+    ),
+  );
 
-  static ThemeData get darkTheme => ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: _colors['accent'],
-        scaffoldBackgroundColor: _colors['background'],
-        cardTheme: CardTheme(
-          color: _colors['surface'],
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: _colors['border']!),
-          ),
-        ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          iconTheme: IconThemeData(color: _colors['accent']),
-          titleTextStyle: TextStyle(
-            color: _colors['text'],
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        textTheme: _baseTextTheme.apply(
-          bodyColor: _colors['text'],
-          displayColor: _colors['text'],
-        ),
-        iconTheme: IconThemeData(color: _colors['accent']),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: _colors['primary'],
-          hintStyle: TextStyle(color: _colors['textSecondary']),
-          border: _buildInputBorder(),
-          enabledBorder: _buildInputBorder(),
-          focusedBorder: _buildInputBorder(_colors['accent']!),
-        ),
-      );
-
-  static OutlineInputBorder _buildInputBorder([Color? color]) {
-    return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(color: color ?? _colors['border']!),
-    );
-  }
+  static final darkTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    colorScheme: ColorScheme.dark(
+      background: _dark,
+      surface: _darker,
+      primary: _darker,
+      secondary: _darker,
+      error: const Color(0xFF3A1A1A),
+      onBackground: _text,
+      onSurface: _text,
+      onPrimary: _text,
+      onSecondary: _text,
+      onError: _text,
+    ),
+    scaffoldBackgroundColor: _dark,
+    cardTheme: CardTheme(
+      color: _borderColor,
+      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: _borderColor),
+      ),
+      margin: const EdgeInsets.all(8),
+    ),
+    listTileTheme: ListTileThemeData(
+      tileColor: _darker,
+      selectedTileColor: _darker,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+    ),
+    appBarTheme: AppBarTheme(
+      backgroundColor: _darker,
+      centerTitle: true,
+      scrolledUnderElevation: 3,
+      titleTextStyle: _textTheme.titleLarge?.copyWith(
+        color: _text,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: _darker,
+      selectedItemColor: _text,
+      unselectedItemColor: _text,
+      elevation: 3,
+      type: BottomNavigationBarType.fixed,
+    ),
+    textTheme: _textTheme.apply(bodyColor: _text, displayColor: _text),
+    iconTheme: IconThemeData(color: _text, size: 24),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: _darker,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      border: _buildBorder(),
+      enabledBorder: _buildBorder(),
+      focusedBorder: _buildBorder(_text),
+      errorBorder: _buildBorder(const Color(0xFF3A1A1A)),
+      focusedErrorBorder: _buildBorder(const Color(0xFF3A1A1A)),
+      prefixIconColor: _text,
+      suffixIconColor: _text,
+    ),
+  );
 }
 
 extension BuildContextThemeExtension on BuildContext {
   ThemeData get theme => Theme.of(this);
   TextTheme get textTheme => theme.textTheme;
   ColorScheme get colorScheme => theme.colorScheme;
-  bool get isDarkMode => theme.brightness == Brightness.dark;
+  EdgeInsets get screenPadding => MediaQuery.of(this).padding;
+  double get screenWidth => MediaQuery.of(this).size.width;
+  double get screenHeight => MediaQuery.of(this).size.height;
+  bool get isKeyboardVisible => MediaQuery.of(this).viewInsets.bottom > 0;
 }

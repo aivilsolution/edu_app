@@ -21,23 +21,20 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   final List<Widget> _pages = [
-    _HomeContent(),
+    PageView(children: [_HomeContent(), ChatPage()]),
     CalendarPage(),
-    ChatPage(),
+    AiPage(),
     ProfilePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: CustomNavBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) =>
-            setState(() => _selectedIndex = index),
+        onDestinationSelected:
+            (index) => setState(() => _selectedIndex = index),
       ),
     );
   }
@@ -54,19 +51,19 @@ class _HomeContent extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => NotificationsPage()),
-            ),
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => NotificationsPage()),
+                ),
           ),
           IconButton(
-            icon: const Icon(Icons.smart_toy_outlined),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AiPage(),
-              ),
-            ),
+            icon: const Icon(Icons.chat_outlined),
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => ChatPage()),
+                ),
           ),
         ],
       ),
@@ -81,22 +78,24 @@ class _HomeContent extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('My Courses',
-                    style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'My Courses',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 IconButton(
                   icon: const Icon(Icons.arrow_forward),
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CoursesGridView()),
-                  ),
+                  onPressed:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CoursesGridView(),
+                        ),
+                      ),
                 ),
               ],
             ),
           ),
-          const SizedBox(
-            height: 250,
-            child: CourseCarouselView(),
-          ),
+          const SizedBox(height: 250, child: CourseCarouselView()),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(

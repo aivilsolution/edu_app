@@ -5,32 +5,24 @@ import 'package:flutter/material.dart';
 class AiPage extends StatelessWidget {
   const AiPage({super.key});
 
-  static const _tabs = [
-    Tab(text: 'Chat'),
-    Tab(text: 'Recommendation'),
-  ];
-
-  static const _views = [
-    ChatsPage(),
-    RecommendationPage(),
-  ];
-
   @override
   Widget build(BuildContext context) => DefaultTabController(
-        length: _tabs.length,
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('AI'),
-            centerTitle: true,
-            bottom: TabBar(
-              labelColor: Theme.of(context).colorScheme.primary,
-              indicatorSize: TabBarIndicatorSize.label,
-              dividerColor: Colors.transparent,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              tabs: _tabs,
-            ),
-          ),
-          body: const TabBarView(children: _views),
-        ),
-      );
+    length: 2,
+    child: Scaffold(
+      appBar: _buildAppBar(context),
+      body: TabBarView(children: const [ChatsPage(), RecommendationPage()]),
+    ),
+  );
+
+  PreferredSizeWidget _buildAppBar(BuildContext context) => AppBar(
+    title: const Text('AI'),
+    centerTitle: true,
+    bottom: TabBar(
+      labelColor: Theme.of(context).colorScheme.primary,
+      indicatorSize: TabBarIndicatorSize.label,
+      dividerColor: Colors.transparent,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      tabs: [Tab(text: 'Chat'), Tab(text: 'Recommendation')],
+    ),
+  );
 }
