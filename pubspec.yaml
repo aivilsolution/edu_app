@@ -17,7 +17,6 @@ dependencies:
   firebase_vertexai: ^1.1.1
   flutter_ai_toolkit: ^0.6.8
   google_fonts: ^6.2.1
-  fl_chart: ^0.70.2
   flutter_markdown: ^0.7.6+2
   firebase_auth: ^5.5.0
   google_sign_in: ^6.2.2

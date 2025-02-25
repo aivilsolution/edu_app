@@ -77,10 +77,7 @@ class _CalendarPageState extends State<CalendarPage> {
               onTap: _showCalendarDialog,
               onDateSelected: _onDaySelected,
             ),
-            HourList(
-              selectedDay: _selectedDay,
-              onDateSelected: _onDaySelected,
-            ),
+            HourList(selectedDay: _selectedDay, onDateSelected: _onDaySelected),
           ],
         ),
       ),
