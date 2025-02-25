@@ -1,136 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const _dark = Color(0xFF121212);
-  static const _darker = Color(0xFF1E1E1E);
-  static const _text = Color(0xFFF5F5F5);
-  static const _borderColor = Color(0xFF2C2C2C);
+  static const Color seedColor = Color.fromARGB(1, 36, 41, 62);
 
-  static const _textTheme = TextTheme(
-    displayLarge: TextStyle(
-      fontSize: 32,
-      fontWeight: FontWeight.w700,
-      height: 1.3,
-    ),
-    displayMedium: TextStyle(
-      fontSize: 28,
-      fontWeight: FontWeight.w600,
-      height: 1.3,
-    ),
-    displaySmall: TextStyle(
-      fontSize: 24,
-      fontWeight: FontWeight.w600,
-      height: 1.3,
-    ),
-    headlineLarge: TextStyle(
-      fontSize: 22,
-      fontWeight: FontWeight.w600,
-      height: 1.4,
-    ),
-    headlineMedium: TextStyle(
-      fontSize: 20,
-      fontWeight: FontWeight.w600,
-      height: 1.4,
-    ),
-    titleLarge: TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.w600,
-      height: 1.4,
-    ),
-    titleMedium: TextStyle(
-      fontSize: 16,
-      fontWeight: FontWeight.w600,
-      height: 1.4,
-    ),
-    titleSmall: TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w600,
-      height: 1.4,
-    ),
-    bodyLarge: TextStyle(fontSize: 16, height: 1.5),
-    bodyMedium: TextStyle(fontSize: 14, height: 1.5),
-    bodySmall: TextStyle(fontSize: 12, height: 1.5),
-    labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-  );
-
-  static OutlineInputBorder _buildBorder([Color? color]) => OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: BorderSide(
-      color: color ?? _borderColor,
-      width: color != null ? 2 : 1,
-    ),
-  );
-
-  static final darkTheme = ThemeData(
+  static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
+    colorSchemeSeed: seedColor,
+    brightness: Brightness.light,
+    textTheme: AppTextTheme.textTheme,
+  );
+
+  static ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
+    colorSchemeSeed: seedColor,
     brightness: Brightness.dark,
-    colorScheme: ColorScheme.dark(
-      background: _dark,
-      surface: _darker,
-      primary: _darker,
-      secondary: _darker,
-      error: const Color(0xFF3A1A1A),
-      onBackground: _text,
-      onSurface: _text,
-      onPrimary: _text,
-      onSecondary: _text,
-      onError: _text,
-    ),
-    scaffoldBackgroundColor: _dark,
-    cardTheme: CardTheme(
-      color: _borderColor,
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: _borderColor),
-      ),
-      margin: const EdgeInsets.all(8),
-    ),
-    listTileTheme: ListTileThemeData(
-      tileColor: _darker,
-      selectedTileColor: _darker,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-    ),
-    appBarTheme: AppBarTheme(
-      backgroundColor: _darker,
-      centerTitle: true,
-      scrolledUnderElevation: 3,
-      titleTextStyle: _textTheme.titleLarge?.copyWith(
-        color: _text,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: _darker,
-      selectedItemColor: _text,
-      unselectedItemColor: _text,
-      elevation: 3,
-      type: BottomNavigationBarType.fixed,
-    ),
-    textTheme: _textTheme.apply(bodyColor: _text, displayColor: _text),
-    iconTheme: IconThemeData(color: _text, size: 24),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: _darker,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      border: _buildBorder(),
-      enabledBorder: _buildBorder(),
-      focusedBorder: _buildBorder(_text),
-      errorBorder: _buildBorder(const Color(0xFF3A1A1A)),
-      focusedErrorBorder: _buildBorder(const Color(0xFF3A1A1A)),
-      prefixIconColor: _text,
-      suffixIconColor: _text,
-    ),
+    textTheme: AppTextTheme.textTheme,
   );
 }
 
-extension BuildContextThemeExtension on BuildContext {
-  ThemeData get theme => Theme.of(this);
-  TextTheme get textTheme => theme.textTheme;
-  ColorScheme get colorScheme => theme.colorScheme;
-  EdgeInsets get screenPadding => MediaQuery.of(this).padding;
-  double get screenWidth => MediaQuery.of(this).size.width;
-  double get screenHeight => MediaQuery.of(this).size.height;
-  bool get isKeyboardVisible => MediaQuery.of(this).viewInsets.bottom > 0;
+class AppTextTheme {
+  static final TextTheme textTheme = TextTheme(
+    displayLarge: _roboto(57, 64, FontWeight.w400, -0.25),
+    displayMedium: _roboto(45, 52, FontWeight.w400, 0),
+    displaySmall: _roboto(36, 44, FontWeight.w400, 0),
+    headlineLarge: _roboto(32, 40, FontWeight.w400, 0),
+    headlineMedium: _roboto(28, 36, FontWeight.w400, 0),
+    headlineSmall: _roboto(24, 32, FontWeight.w400, 0),
+    titleLarge: _openSans(22, 28, FontWeight.w400, 0),
+    titleMedium: _openSans(16, 24, FontWeight.w500, 0.15),
+    titleSmall: _openSans(14, 20, FontWeight.w500, 0.1),
+    bodyLarge: _openSans(16, 24, FontWeight.w400, 0.5),
+    bodyMedium: _openSans(14, 20, FontWeight.w400, 0.25),
+    bodySmall: _openSans(12, 16, FontWeight.w400, 0.4),
+    labelLarge: _openSans(14, 20, FontWeight.w500, 0.1),
+    labelMedium: _openSans(12, 16, FontWeight.w500, 0.5),
+    labelSmall: _openSans(11, 16, FontWeight.w500, 0.5),
+  );
+
+  static TextStyle _roboto(
+    double fontSize,
+    double lineHeight,
+    FontWeight fontWeight,
+    double letterSpacing,
+  ) => GoogleFonts.roboto(
+    fontSize: fontSize,
+    height: lineHeight / fontSize,
+    fontWeight: fontWeight,
+    letterSpacing: letterSpacing,
+  );
+
+  static TextStyle _openSans(
+    double fontSize,
+    double lineHeight,
+    FontWeight fontWeight,
+    double letterSpacing,
+  ) => GoogleFonts.openSans(
+    fontSize: fontSize,
+    height: lineHeight / fontSize,
+    fontWeight: fontWeight,
+    letterSpacing: letterSpacing,
+  );
 }

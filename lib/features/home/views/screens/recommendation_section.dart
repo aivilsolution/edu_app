@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
-class RecommendationPage extends StatelessWidget {
-  const RecommendationPage({super.key});
+class RecommendationSection extends StatelessWidget {
+  const RecommendationSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    return Column(
       children: const [
         SizedBox(height: 24),
         PracticeSection(),
@@ -22,6 +21,7 @@ class PracticeSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -29,13 +29,13 @@ class PracticeSection extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4),
           child: Text(
             'Practice Questions',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: 16),
-        ...QuestionTopic.values.map(TopicCard.new),
+        ...QuestionTopic.values.map((topic) => TopicCard(topic)),
       ],
     );
   }
@@ -46,6 +46,7 @@ class LearningMaterialsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -53,13 +54,13 @@ class LearningMaterialsSection extends StatelessWidget {
           padding: const EdgeInsets.only(left: 4),
           child: Text(
             'Learning Materials',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         const SizedBox(height: 16),
-        ...ReviewContent.values.map(MaterialCard.new),
+        ...ReviewContent.values.map((content) => MaterialCard(content)),
       ],
     );
   }
@@ -72,14 +73,14 @@ class TopicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
-        ),
+        side: BorderSide(color: colorScheme.outline.withOpacity(0.1)),
       ),
       child: InkWell(
         onTap: topic.onSolve,
@@ -91,13 +92,13 @@ class TopicCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: theme.primaryColorLight.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   topic.chapterId.toString(),
                   style: TextStyle(
-                    color: Theme.of(context).primaryColor,
+                    color: theme.primaryColorLight,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -109,22 +110,19 @@ class TopicCard extends StatelessWidget {
                   children: [
                     Text(
                       topic.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '5 questions',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    Text('5 questions', style: theme.textTheme.bodySmall),
                   ],
                 ),
               ),
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: Theme.of(context).primaryColor,
+                color: theme.primaryColorLight,
               ),
             ],
           ),
@@ -141,14 +139,15 @@ class MaterialCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
-        ),
+        side: BorderSide(color: colorScheme.outline.withOpacity(0.1)),
       ),
       child: InkWell(
         onTap: content.onTap,
@@ -160,13 +159,10 @@ class MaterialCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: theme.primaryColorLight.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  content.icon,
-                  color: Theme.of(context).primaryColor,
-                ),
+                child: Icon(content.icon, color: theme.primaryColorLight),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -175,14 +171,14 @@ class MaterialCard extends StatelessWidget {
                   children: [
                     Text(
                       content.title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${content.duration} min read',
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: theme.textTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -190,7 +186,7 @@ class MaterialCard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: Theme.of(context).primaryColor,
+                color: theme.primaryColorLight,
               ),
             ],
           ),

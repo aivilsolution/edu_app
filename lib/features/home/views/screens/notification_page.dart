@@ -1,4 +1,3 @@
-import 'package:edu_app/shared/widgets/search_widget.dart';
 import 'package:flutter/material.dart';
 
 class NotificationsPage extends StatelessWidget {
@@ -18,10 +17,7 @@ class NotificationsPage extends StatelessWidget {
         ),
         title: const Text('Notifications'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(Icons.filter_list), onPressed: () {}),
         ],
       ),
       body: Padding(
@@ -33,18 +29,19 @@ class NotificationsPage extends StatelessWidget {
             Expanded(
               child: ListView.separated(
                 itemCount: 10,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: _cardSpacing),
-                itemBuilder: (context, index) => _DetailedNotificationCard(
-                  notification: Notification(
-                    title: 'Important Course Update ${index + 1}',
-                    description:
-                        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-                    time: '${index + 1}h ago',
-                    icon: Icons.notification_important,
-                    isRead: index > 2,
-                  ),
-                ),
+                separatorBuilder:
+                    (_, __) => const SizedBox(height: _cardSpacing),
+                itemBuilder:
+                    (context, index) => _DetailedNotificationCard(
+                      notification: Notification(
+                        title: 'Important Course Update ${index + 1}',
+                        description:
+                            'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                        time: '${index + 1}h ago',
+                        icon: Icons.notification_important,
+                        isRead: index > 2,
+                      ),
+                    ),
               ),
             ),
           ],
@@ -130,9 +127,10 @@ class _DetailedNotificationCard extends StatelessWidget {
                             child: Text(
                               notification.title,
                               style: TextStyle(
-                                fontWeight: notification.isRead
-                                    ? FontWeight.normal
-                                    : FontWeight.bold,
+                                fontWeight:
+                                    notification.isRead
+                                        ? FontWeight.normal
+                                        : FontWeight.bold,
                               ),
                             ),
                           ),
@@ -170,14 +168,8 @@ class _DetailedNotificationCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('Mark as read'),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('View Details'),
-                ),
+                TextButton(onPressed: () {}, child: const Text('Mark as read')),
+                TextButton(onPressed: () {}, child: const Text('View Details')),
               ],
             ),
           ],
