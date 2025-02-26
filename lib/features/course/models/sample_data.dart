@@ -1,4 +1,4 @@
-import 'package:edu_app/features/course/models/course_model.dart';
+import '/features/course/models/course_model.dart';
 
 Professor physicsProf = Professor(
   id: "prof_01",

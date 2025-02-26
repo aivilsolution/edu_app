@@ -1,7 +1,7 @@
-import 'package:edu_app/features/course/models/sample_data.dart';
-import 'package:edu_app/features/course/views/screens/course_page.dart';
-import 'package:edu_app/shared/widgets/carousel_widget.dart';
-import 'package:edu_app/shared/widgets/course_card.dart';
+import '/features/course/models/sample_data.dart';
+import '/features/course/views/screens/course_page.dart';
+import '/shared/widgets/carousel_widget.dart';
+import '/shared/widgets/course_card.dart';
 import 'package:flutter/material.dart';
 
 class CourseCarouselView extends StatelessWidget {

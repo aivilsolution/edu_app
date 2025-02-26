@@ -1,5 +1,5 @@
-import 'package:edu_app/core/constants/calendar_constants.dart';
-import 'package:edu_app/core/utils/date_utils.dart';
+import '/core/constants/calendar_constants.dart';
+import '/core/utils/date_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -89,7 +89,7 @@ class _DateSelectorState extends State<DateSelector> {
           color: isSelected
               ? theme.colorScheme.primary
               : isToday
-                  ? theme.colorScheme.primary.withOpacity(0.1)
+                  ? theme.colorScheme.primary.withValues(alpha: 0.1)
                   : theme.colorScheme.surface,
           border: isToday && !isSelected
               ? Border.all(color: theme.colorScheme.primary, width: 2)
@@ -105,7 +105,7 @@ class _DateSelectorState extends State<DateSelector> {
               style: TextStyle(
                 color: isSelected
                     ? theme.colorScheme.onPrimary
-                    : theme.colorScheme.onSurface.withOpacity(0.7),
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
@@ -144,7 +144,7 @@ class _DateSelectorState extends State<DateSelector> {
               borderRadius:
                   BorderRadius.circular(CalendarConstants.largeBorderRadius),
               border: Border.all(
-                color: theme.colorScheme.outline.withOpacity(0.5),
+                color: theme.colorScheme.outline.withValues(alpha: 0.5),
               ),
             ),
             child: Row(
@@ -162,7 +162,7 @@ class _DateSelectorState extends State<DateSelector> {
                       Text(
                         'Selected Date',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -177,7 +177,7 @@ class _DateSelectorState extends State<DateSelector> {
                 ),
                 Icon(
                   Icons.arrow_drop_down,
-                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
               ],
             ),

@@ -5,10 +5,10 @@ class CustomNavBar extends StatelessWidget {
   final ValueChanged<int> onDestinationSelected;
 
   const CustomNavBar({
-    Key? key,
+    super.key,
     required this.selectedIndex,
     required this.onDestinationSelected,
-  }) : super(key: key);
+  }) ;
 
   static const double _iconPadding = 8.0;
 

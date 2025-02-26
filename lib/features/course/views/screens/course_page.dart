@@ -1,9 +1,9 @@
-import 'package:edu_app/features/course/views/widgets/professor_widget.dart';
-import 'package:edu_app/features/course/views/widgets/modules_widget.dart';
-import 'package:edu_app/features/course/views/widgets/quiz_widget.dart';
-import 'package:edu_app/shared/widgets/custom_app_bar.dart';
+import '/features/course/views/widgets/professor_widget.dart';
+import '/features/course/views/widgets/modules_widget.dart';
+import '/features/course/views/widgets/quiz_widget.dart';
+import '/shared/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:edu_app/features/course/models/course_model.dart';
+import '/features/course/models/course_model.dart';
 
 class CoursePage extends StatelessWidget {
   final Course course;

@@ -35,7 +35,7 @@ class PracticeSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        ...QuestionTopic.values.map((topic) => TopicCard(topic)),
+        ...QuestionTopic.values.map((topic) => TopicCard(topic: topic)),
       ],
     );
   }
@@ -60,7 +60,9 @@ class LearningMaterialsSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        ...ReviewContent.values.map((content) => MaterialCard(content)),
+        ...ReviewContent.values.map(
+          (content) => MaterialCard(content: content),
+        ),
       ],
     );
   }
@@ -69,21 +71,22 @@ class LearningMaterialsSection extends StatelessWidget {
 class TopicCard extends StatelessWidget {
   final QuestionTopic topic;
 
-  const TopicCard(this.topic, {super.key});
+  const TopicCard({super.key, required this.topic});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: colorScheme.outline.withOpacity(0.1)),
+        side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: InkWell(
-        onTap: topic.onSolve,
+        onTap: () => topic.onSolve(),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -92,13 +95,13 @@ class TopicCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.primaryColorLight.withOpacity(0.1),
+                  color: colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   topic.chapterId.toString(),
                   style: TextStyle(
-                    color: theme.primaryColorLight,
+                    color: colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -122,7 +125,7 @@ class TopicCard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: theme.primaryColorLight,
+                color: colorScheme.primary,
               ),
             ],
           ),
@@ -135,7 +138,7 @@ class TopicCard extends StatelessWidget {
 class MaterialCard extends StatelessWidget {
   final ReviewContent content;
 
-  const MaterialCard(this.content, {super.key});
+  const MaterialCard({super.key, required this.content});
 
   @override
   Widget build(BuildContext context) {
@@ -147,10 +150,10 @@ class MaterialCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: colorScheme.outline.withOpacity(0.1)),
+        side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: InkWell(
-        onTap: content.onTap,
+        onTap: () => content.onTap(),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -159,10 +162,10 @@ class MaterialCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.primaryColorLight.withOpacity(0.1),
+                  color: colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(content.icon, color: theme.primaryColorLight),
+                child: Icon(content.icon, color: colorScheme.primary),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -186,7 +189,7 @@ class MaterialCard extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: theme.primaryColorLight,
+                color: colorScheme.primary,
               ),
             ],
           ),
@@ -196,46 +199,37 @@ class MaterialCard extends StatelessWidget {
   }
 }
 
+// Updated Enum Definitions
 enum QuestionTopic {
-  dataStructures(name: 'Data Structures', chapterId: 1, questionId: 101),
-  algorithms(name: 'Algorithms', chapterId: 2, questionId: 102),
-  problemSolving(name: 'Problem Solving', chapterId: 3, questionId: 103);
+  dataStructures('Data Structures', 1, 101),
+  algorithms('Algorithms', 2, 102),
+  problemSolving('Problem Solving', 3, 103);
 
   final String name;
   final int chapterId;
   final int questionId;
-  final VoidCallback? onSolve;
 
-  const QuestionTopic({
-    required this.name,
-    required this.chapterId,
-    required this.questionId,
-    this.onSolve,
-  });
+  const QuestionTopic(this.name, this.chapterId, this.questionId);
+
+  void onSolve() {
+    // Implement solve logic here
+    debugPrint('Solving $name...');
+  }
 }
 
 enum ReviewContent {
-  binaryTrees(
-    title: 'Understanding Binary Trees',
-    icon: Icons.account_tree,
-    duration: 15,
-  ),
-  sorting(title: 'Advanced Sorting Techniques', icon: Icons.sort, duration: 20),
-  optimization(
-    title: 'Optimization Strategies',
-    icon: Icons.speed,
-    duration: 10,
-  );
+  binaryTrees('Understanding Binary Trees', Icons.account_tree, 15),
+  sorting('Advanced Sorting Techniques', Icons.sort, 20),
+  optimization('Optimization Strategies', Icons.speed, 10);
 
   final String title;
   final IconData icon;
   final int duration;
-  final VoidCallback? onTap;
 
-  const ReviewContent({
-    required this.title,
-    required this.icon,
-    required this.duration,
-    this.onTap,
-  });
+  const ReviewContent(this.title, this.icon, this.duration);
+
+  void onTap() {
+    // Implement tap logic here
+    debugPrint('Opening $title...');
+  }
 }

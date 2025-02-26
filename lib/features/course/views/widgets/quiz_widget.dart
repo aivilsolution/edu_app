@@ -1,4 +1,4 @@
-import 'package:edu_app/features/course/models/course_model.dart';
+import '/features/course/models/course_model.dart';
 import 'package:flutter/material.dart';
 
 class QuizWidget extends StatelessWidget {

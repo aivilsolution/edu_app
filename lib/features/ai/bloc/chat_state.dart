@@ -1,5 +1,5 @@
 // lib/features/ai/bloc/chat_state.dart
-import 'package:edu_app/features/ai/data/models/chat.dart';
+import '/features/ai/data/models/chat.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
 import 'package:equatable/equatable.dart';
 

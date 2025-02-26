@@ -1,8 +1,8 @@
 // lib/features/ai/presentation/pages/ai_page.dart
-import 'package:edu_app/features/ai/bloc/chat_cubit.dart';
-import 'package:edu_app/features/ai/bloc/chat_state.dart';
-import 'package:edu_app/features/ai/data/models/chat.dart';
-import 'package:edu_app/features/ai/views/screens/chats_archive.dart';
+import '/features/ai/bloc/chat_cubit.dart';
+import '/features/ai/bloc/chat_state.dart';
+import '/features/ai/data/models/chat.dart';
+import '/features/ai/views/screens/chats_archive.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

@@ -1,15 +1,18 @@
-// File: lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:edu_app/core/firebase/firebase_options.dart';
-import 'package:edu_app/core/theme/theme.dart';
-import 'package:edu_app/core/router/app_router.dart';
-import 'package:edu_app/features/ai/data/repository/chat_repository.dart';
-import 'package:edu_app/features/auth/login_info.dart';
+import 'core/firebase/firebase_options.dart';
+import 'core/theme/theme.dart';
+import 'core/router/app_router.dart';
+import 'core/config/env_config.dart';
+import 'features/ai/data/repository/chat_repository.dart';
+import 'features/auth/login_info.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await EnvConfig.load();
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const EduApp());
 }

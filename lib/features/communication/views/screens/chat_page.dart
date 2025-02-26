@@ -1,4 +1,4 @@
-import 'package:edu_app/shared/widgets/custom_app_bar.dart';
+import '/shared/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 
 class ChatPage extends StatelessWidget {

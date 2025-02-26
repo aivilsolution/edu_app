@@ -1,13 +1,13 @@
-import 'package:edu_app/features/home/views/screens/home_screen.dart';
+import '/features/home/views/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:go_router/go_router.dart';
-import 'package:edu_app/features/ai/views/screens/ai_page.dart';
-import 'package:edu_app/features/calendar/views/screens/calendar_page.dart';
-import 'package:edu_app/features/profile/views/screens/profile_page.dart';
-import 'package:edu_app/features/auth/login_info.dart';
-import 'package:edu_app/shared/widgets/custom_nav_bar.dart';
+import '/features/ai/views/screens/ai_page.dart';
+import '/features/calendar/views/screens/calendar_page.dart';
+import '/features/profile/views/screens/profile_page.dart';
+import '/features/auth/login_info.dart';
+import '/shared/widgets/custom_nav_bar.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> _homeNavigatorKey =

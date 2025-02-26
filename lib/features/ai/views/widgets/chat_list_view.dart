@@ -1,5 +1,5 @@
 // lib/features/ai/presentation/widgets/chat_list_view.dart
-import 'package:edu_app/features/ai/data/models/chat.dart';
+import '/features/ai/data/models/chat.dart';
 import 'package:flutter/material.dart';
 
 /// Displays a list of chats with options to select, rename, or delete.

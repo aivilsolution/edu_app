@@ -1,6 +1,6 @@
 // lib/features/ai/presentation/widgets/chats_archive.dart
-import 'package:edu_app/features/ai/data/models/chat.dart';
-import 'package:edu_app/features/ai/views/widgets/chat_list_view.dart';
+import '/features/ai/data/models/chat.dart';
+import '/features/ai/views/widgets/chat_list_view.dart';
 import 'package:flutter/material.dart';
 
 /// Archive screen for browsing, renaming, and deleting chats.

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-import 'package:edu_app/features/home/views/screens/course_grid_view.dart';
-import 'package:edu_app/features/home/views/screens/notification_page.dart';
-import 'package:edu_app/features/home/views/screens/recommendation_section.dart';
-import 'package:edu_app/features/home/views/widgets/course_carousel_view.dart';
-import 'package:edu_app/features/communication/views/screens/chat_page.dart';
-import 'package:edu_app/shared/widgets/search_widget.dart';
-import 'package:edu_app/shared/widgets/section_header.dart';
+import '/features/home/views/screens/course_grid_view.dart';
+import '/features/home/views/screens/notification_page.dart';
+import '/features/home/views/screens/recommendation_section.dart';
+import '/features/home/views/widgets/course_carousel_view.dart';
+import '/features/communication/views/screens/chat_page.dart';
+import '/shared/widgets/search_widget.dart';
+import '/shared/widgets/section_header.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

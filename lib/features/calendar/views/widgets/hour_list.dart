@@ -46,7 +46,7 @@ class HourList extends StatelessWidget {
                     horizontalOffset: horizontalPadding + timeContainerWidth,
                     dotSize: dotSize,
                     lineColor: Colors.grey.shade300,
-                    dotColor: Theme.of(context).colorScheme.onBackground,
+                    dotColor: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -158,11 +158,11 @@ class HourItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const HourItem({
-    Key? key,
+    super.key,
     required this.hourDateTime,
     required this.isCurrentHour,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -193,27 +193,27 @@ class TimeContainer extends StatelessWidget {
   final bool isCurrentHour;
 
   const TimeContainer({
-    Key? key,
+    super.key,
     required this.formattedHour,
     required this.isCurrentHour,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
-    final onBackgroundColor = theme.colorScheme.onBackground;
+    final onBackgroundColor = theme.colorScheme.onSurface;
     final onPrimaryColor = theme.colorScheme.onPrimary;
 
     return Container(
       width: 86,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: isCurrentHour ? primaryColor : primaryColor.withOpacity(0.1),
+        color: isCurrentHour ? primaryColor : primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
         border:
             isCurrentHour
-                ? Border.all(color: primaryColor.withOpacity(0.5))
+                ? Border.all(color: primaryColor.withValues(alpha: 0.5))
                 : null,
       ),
       child: Text(
@@ -231,17 +231,17 @@ class TimeContainer extends StatelessWidget {
 
 /// Indicates the current time.
 class CurrentTimeIndicator extends StatelessWidget {
-  const CurrentTimeIndicator({Key? key}) : super(key: key);
+  const CurrentTimeIndicator({super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final onBackgroundColor = theme.colorScheme.onBackground;
+    final onBackgroundColor = theme.colorScheme.onSurface;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.1),
+        color: theme.colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Row(
