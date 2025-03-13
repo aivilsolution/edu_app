@@ -1,8 +1,8 @@
-// lib/features/ai/presentation/widgets/chat_list_view.dart
+
 import '/features/ai/data/models/chat.dart';
 import 'package:flutter/material.dart';
 
-/// Displays a list of chats with options to select, rename, or delete.
+
 class ChatListView extends StatelessWidget {
   final List<Chat> chats;
   final String selectedChatId;
@@ -24,7 +24,7 @@ class ChatListView extends StatelessWidget {
     return ListView.builder(
       itemCount: chats.length,
       itemBuilder: (context, index) {
-        // Reverse the list to show recent chats at the top.
+        
         final chat = chats[chats.length - index - 1];
         final isSelected = chat.id == selectedChatId;
         final chatTitle = chat.title.isNotEmpty ? chat.title : "Untitled";

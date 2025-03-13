@@ -1,9 +1,7 @@
-// lib/features/ai/presentation/widgets/chats_archive.dart
 import '/features/ai/data/models/chat.dart';
 import '/features/ai/views/widgets/chat_list_view.dart';
 import 'package:flutter/material.dart';
 
-/// Archive screen for browsing, renaming, and deleting chats.
 class ChatsArchive extends StatefulWidget {
   final List<Chat> chats;
   final String selectedChatId;
@@ -30,14 +28,16 @@ class _ChatsArchiveState extends State<ChatsArchive> {
   void initState() {
     super.initState();
     _selectedChatId = widget.selectedChatId;
-    _chats = List.from(widget.chats); // Create a copy to avoid mutation issues
+    _chats = List.from(widget.chats); 
   }
 
+  
   void _onChatSelected(Chat chat) {
     setState(() => _selectedChatId = chat.id);
     Navigator.pop(context, chat);
   }
 
+  
   Future<void> _onRenameChat(Chat chat) async {
     final controller = TextEditingController(text: chat.title);
 
@@ -70,7 +70,7 @@ class _ChatsArchiveState extends State<ChatsArchive> {
       try {
         final updatedChat = Chat(id: chat.id, title: newTitle.trim());
         widget.onUpdateChat(updatedChat);
-        // Update local state immediately for UI feedback
+        
         setState(() {
           _chats =
               _chats.map((c) => c.id == chat.id ? updatedChat : c).toList();
@@ -81,6 +81,7 @@ class _ChatsArchiveState extends State<ChatsArchive> {
     }
   }
 
+  
   Future<void> _onDeleteChat(Chat chat) async {
     final confirm = await showDialog<bool?>(
       context: context,
@@ -104,7 +105,7 @@ class _ChatsArchiveState extends State<ChatsArchive> {
     if (confirm == true) {
       try {
         widget.onDeleteChat(chat);
-        // Update local state immediately for UI feedback
+        
         setState(() {
           _chats = _chats.where((c) => c.id != chat.id).toList();
         });
@@ -114,6 +115,7 @@ class _ChatsArchiveState extends State<ChatsArchive> {
     }
   }
 
+  
   void _showErrorSnackBar(String message, Object error) {
     debugPrint('$message: $error');
     ScaffoldMessenger.of(
@@ -124,6 +126,7 @@ class _ChatsArchiveState extends State<ChatsArchive> {
   @override
   Widget build(BuildContext context) {
     final hasChats = _chats.isNotEmpty;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Chats Archive')),
       body:

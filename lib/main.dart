@@ -1,3 +1,4 @@
+import 'package:edu_app/features/ai/data/repository/media_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -35,6 +36,7 @@ class _EduAppState extends State<EduApp> {
     FirebaseAuth.instance.authStateChanges().listen((user) {
       LoginInfo.instance.user = user;
       ChatRepository.user = user;
+      MediaRepository.user = user;
     });
   }
 

@@ -1,151 +1,109 @@
-// lib/features/ai/bloc/chat_cubit.dart
+import 'dart:async';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_vertexai/firebase_vertexai.dart';
+import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
+
 import '/features/ai/bloc/chat_state.dart';
 import '/features/ai/data/models/chat.dart';
 import '/features/ai/data/repository/chat_repository.dart';
-import 'package:firebase_vertexai/firebase_vertexai.dart';
-import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Main Cubit that manages chat state
 class ChatCubit extends Cubit<ChatState> {
-  ChatRepository? _repository;
+  late ChatRepository _repository;
+  LlmProvider? _currentProvider;
 
-  ChatCubit({ChatRepository? repository})
-    : _repository = repository,
-      super(ChatLoadingState()) {
-    initialize();
-  }
-
-  /// Initializes the chat system
-  Future<void> initialize() async {
-    try {
-      _repository ??= await ChatRepository.forCurrentUser;
-
-      final repository = _repository;
-      if (repository == null) {
-        emit(
-          ChatErrorState(
-            'Failed to initialize chat repository',
-            Exception('Repository is null'),
-          ),
-        );
-        return;
-      }
-
-      final chats = repository.chats;
-
-      if (chats.isEmpty) {
-        // Create a new chat if none exist
-        final newChat = await repository.addChat();
-        await _loadChat(newChat, repository);
-      } else {
-        // Load the most recent chat
-        await _loadChat(chats.last, repository);
-      }
-    } catch (e) {
-      emit(ChatErrorState('Error initializing chat', e));
+  ChatCubit({ChatRepository? repository}) : super(const ChatLoadingState()) {
+    if (repository != null) {
+      _repository = repository;
+    } else {
+      initialize();
     }
   }
 
-  /// Loads a specific chat
-  Future<void> _loadChat(Chat chat, ChatRepository repository) async {
+  @override
+  Future<void> close() async {
+    await _cleanup();
+    return super.close();
+  }
+
+  
+  Future<void> initialize() async {
     try {
-      final history = await repository.getHistory(chat);
-      final provider = _createProvider(history);
+      await _initializeRepository();
+      final newChat = await _repository.addChat();
+      await _loadChat(newChat);
+    } catch (e, stackTrace) {
+      emit(ChatErrorState('Error initializing chat', e, stackTrace));
+    }
+  }
+
+  Future<void> _initializeRepository() async {
+    _repository = await ChatRepository.forCurrentUser;
+  }
+
+  Future<void> _cleanup() async {
+    _currentProvider?.removeListener(_onProviderHistoryChanged);
+  }
+
+  
+  Future<void> createNewChat() async {
+    if (state is ChatLoadingState) return;
+
+    emit(const ChatLoadingState());
+
+    try {
+      final newChat = await _repository.addChat();
+      await _loadChat(newChat);
+    } catch (e, stackTrace) {
+      emit(ChatErrorState('Failed to create new chat', e, stackTrace));
+    }
+  }
+
+  Future<void> loadChat(Chat chat) async {
+    if (state is ChatLoadingState) return;
+
+    emit(const ChatLoadingState());
+
+    try {
+      await _loadChat(chat);
+    } catch (e, stackTrace) {
+      emit(ChatErrorState('Failed to load selected chat', e, stackTrace));
+    }
+  }
+
+  Future<void> _loadChat(Chat chat) async {
+    try {
+      _currentProvider?.removeListener(_onProviderHistoryChanged);
+
+      final history = await _repository.getHistory(chat);
+      final provider = createProvider(history);
+
+      _currentProvider = provider;
+      provider.addListener(_onProviderHistoryChanged);
 
       emit(
         ChatLoadedState(
           currentChat: chat,
           provider: provider,
-          allChats: repository.chats,
+          allChats: _repository.chats,
         ),
       );
-    } catch (e) {
-      emit(ChatErrorState('Failed to load chat', e));
+    } catch (e, stackTrace) {
+      emit(ChatErrorState('Failed to load chat', e, stackTrace));
     }
   }
 
-  /// Creates a new chat
-  Future<void> createNewChat() async {
-    if (state is ChatLoadingState) return;
-
-    emit(ChatLoadingState());
-
-    try {
-      _repository ??= await ChatRepository.forCurrentUser;
-
-      final repository = _repository;
-      if (repository == null) {
-        emit(
-          ChatErrorState(
-            'Unable to access chat repository',
-            Exception('Repository is null'),
-          ),
-        );
-        return;
-      }
-
-      final newChat = await repository.addChat();
-      await _loadChat(newChat, repository);
-    } catch (e) {
-      emit(ChatErrorState('Failed to create new chat', e));
-    }
-  }
-
-  /// Loads a selected chat
-  Future<void> loadChat(Chat chat) async {
-    if (state is ChatLoadingState) return;
-
-    emit(ChatLoadingState());
-
-    try {
-      _repository ??= await ChatRepository.forCurrentUser;
-
-      final repository = _repository;
-      if (repository == null) {
-        emit(
-          ChatErrorState(
-            'Unable to access chat repository',
-            Exception('Repository is null'),
-          ),
-        );
-        return;
-      }
-
-      await _loadChat(chat, repository);
-    } catch (e) {
-      emit(ChatErrorState('Failed to load selected chat', e));
-    }
-  }
-
-  /// Updates a chat with new information
   Future<void> updateChat(Chat updatedChat) async {
     if (state is! ChatLoadedState) return;
 
     try {
-      _repository ??= await ChatRepository.forCurrentUser;
+      await _repository.updateChat(updatedChat);
 
-      final repository = _repository;
-      if (repository == null) {
-        emit(
-          ChatErrorState(
-            'Unable to access chat repository',
-            Exception('Repository is null'),
-          ),
-        );
-        return;
-      }
-
-      await repository.updateChat(updatedChat);
-
-      // We need to cast this safely
       if (state is ChatLoadedState) {
         final currentState = state as ChatLoadedState;
-
-        // Update state with the updated list of chats
         emit(
           currentState.copyWith(
-            allChats: repository.chats,
+            allChats: _repository.chats,
             currentChat:
                 currentState.currentChat.id == updatedChat.id
                     ? updatedChat
@@ -153,56 +111,128 @@ class ChatCubit extends Cubit<ChatState> {
           ),
         );
       }
-    } catch (e) {
-      emit(ChatErrorState('Failed to update chat', e));
+    } catch (e, stackTrace) {
+      emit(ChatErrorState('Failed to update chat', e, stackTrace));
     }
   }
 
-  /// Deletes a chat
   Future<void> deleteChat(Chat chat) async {
     try {
-      _repository ??= await ChatRepository.forCurrentUser;
+      await _repository.deleteChat(chat);
 
-      final repository = _repository;
-      if (repository == null) {
-        emit(
-          ChatErrorState(
-            'Unable to access chat repository',
-            Exception('Repository is null'),
-          ),
-        );
-        return;
-      }
-
-      await repository.deleteChat(chat);
-
-      // If we deleted the current chat, load another one or go to empty state
       if (state is ChatLoadedState) {
         final currentState = state as ChatLoadedState;
         if (currentState.currentChat.id == chat.id) {
-          if (repository.chats.isEmpty) {
+          if (_repository.chats.isEmpty) {
             emit(ChatEmptyState([]));
           } else {
-            await _loadChat(repository.chats.last, repository);
+            await _loadChat(_repository.chats.last);
           }
           return;
         }
 
-        // Just update the list of all chats
-        emit(currentState.copyWith(allChats: repository.chats));
+        emit(currentState.copyWith(allChats: _repository.chats));
       }
-    } catch (e) {
-      emit(ChatErrorState('Failed to delete chat', e));
+    } catch (e, stackTrace) {
+      emit(ChatErrorState('Failed to delete chat', e, stackTrace));
     }
   }
 
-  /// Creates a provider with the given history
-  LlmProvider _createProvider([List<ChatMessage>? history]) {
+  
+  Future<void> updateMessage(Chat chat) async {
+    if (state is! ChatLoadedState) return;
+
+    final currentState = state as ChatLoadedState;
+    final provider = currentState.provider;
+
+    try {
+      final history = provider.history.toList();
+      await _repository.updateHistory(chat, history);
+
+      if (_shouldGenerateTitle(chat, history)) {
+        await _generateChatTitle(chat, history, currentState);
+      }
+    } catch (e, stackTrace) {
+      emit(ChatErrorState('Failed to update message', e, stackTrace));
+    }
+  }
+
+  bool _shouldGenerateTitle(Chat chat, List<ChatMessage> history) {
+    return history.length >= 2 &&
+        chat.title == ChatRepository.newChatTitle &&
+        history[0].origin.isUser &&
+        history[1].origin.isLlm;
+  }
+
+  Future<void> _generateChatTitle(
+    Chat chat,
+    List<ChatMessage> history,
+    ChatLoadedState currentState,
+  ) async {
+    final stream = createProvider().sendMessageStream(
+      'Please give me a short title for this chat. It should be a single, '
+      'short phrase with no markdown or punctuation, maximum 5 words.',
+    );
+
+    final title = await stream.join();
+    final trimmedTitle = title.trim();
+
+    if (trimmedTitle.isNotEmpty) {
+      final chatWithNewTitle = Chat(id: chat.id, title: trimmedTitle);
+      await _repository.updateChat(chatWithNewTitle);
+
+      emit(
+        currentState.copyWith(
+          currentChat: chatWithNewTitle,
+          allChats: _repository.chats,
+        ),
+      );
+    }
+  }
+
+  Future<void> updateChatTitle(Chat chat, String newTitle) async {
+    if (state is! ChatLoadedState) return;
+
+    try {
+      final updatedChat = Chat(id: chat.id, title: newTitle.trim());
+      await _repository.updateChat(updatedChat);
+
+      if (state is ChatLoadedState) {
+        final currentState = state as ChatLoadedState;
+        emit(
+          currentState.copyWith(
+            allChats: _repository.chats,
+            currentChat:
+                currentState.currentChat.id == updatedChat.id
+                    ? updatedChat
+                    : currentState.currentChat,
+          ),
+        );
+      }
+    } catch (e, stackTrace) {
+      debugPrint('ChatCubit update chat title error: $e\n$stackTrace');
+    }
+  }
+
+  
+  LlmProvider createProvider([List<ChatMessage>? history]) {
     return VertexProvider(
       history: history ?? [],
       model: FirebaseVertexAI.instance.generativeModel(
+        systemInstruction: Content.system('''
+      Only When a user's message includes "@media", reply with a message such as:
+      "Your explanation is being prepared. Please check your media shortly."
+    '''),
         model: 'gemini-2.0-flash-lite-preview-02-05',
       ),
     );
+  }
+
+  void _onProviderHistoryChanged() {
+    if (state is ChatLoadedState) {
+      final currentState = state as ChatLoadedState;
+      emit(currentState.copyWith(provider: _currentProvider));
+      updateMessage(currentState.currentChat);
+    }
   }
 }
