@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:edu_app/features/ai/bloc/chat_state.dart';
+import 'package:edu_app/features/ai/cubit/chat_state.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_vertexai/firebase_vertexai.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
 
-import '/features/ai/bloc/media_state.dart';
+import '/features/ai/cubit/media_state.dart';
 import '/features/ai/data/models/media.dart';
 import '/features/ai/data/repository/media_repository.dart';
-import '/features/ai/bloc/chat_cubit.dart';
+import '/features/ai/cubit/chat_cubit.dart';
 
 class MediaCubit extends Cubit<MediaState> {
   final MediaRepository _repository;
@@ -52,7 +52,6 @@ class MediaCubit extends Cubit<MediaState> {
   }
 
   Future<void> _initialize() async {
-    debugPrint('MediaCubit: initializing');
     try {
       await MediaRepository.forCurrentUser;
       await _loadMedia();
@@ -67,7 +66,6 @@ class MediaCubit extends Cubit<MediaState> {
   }
 
   Future<void> refreshMedia() async {
-    debugPrint('MediaCubit: refreshing media');
     final currentMedia = _getCurrentMedia();
     emit(MediaLoadingState(allMedia: currentMedia));
 
@@ -85,7 +83,9 @@ class MediaCubit extends Cubit<MediaState> {
   }
 
   Future<void> loadMedia() async {
-    if (state is MediaLoadingState) return;
+    if (state is MediaLoadingState) {
+      return;
+    }
 
     emit(MediaLoadingState(allMedia: _getCurrentMedia()));
     await _loadMedia();
@@ -100,7 +100,8 @@ class MediaCubit extends Cubit<MediaState> {
     }
 
     try {
-      return await _repository.addMedia(content: content);
+      final media = await _repository.addMedia(content: content);
+      return media;
     } catch (e, stackTrace) {
       _handleError('Failed to create media', e, stackTrace);
       return null;
@@ -113,7 +114,9 @@ class MediaCubit extends Cubit<MediaState> {
     bool debounce = true,
     Duration? debounceTime,
   }) async {
-    if (state is! MediaLoadedState) return;
+    if (state is! MediaLoadedState) {
+      return;
+    }
     _debounceTimer?.cancel();
 
     try {
@@ -136,7 +139,9 @@ class MediaCubit extends Cubit<MediaState> {
   }
 
   Future<void> deleteMedia(Media media) async {
-    if (state is! MediaLoadedState) return;
+    if (state is! MediaLoadedState) {
+      return;
+    }
     final currentMedia = (state as MediaLoadedState).allMedia;
     try {
       await _repository.deleteMedia(media);
@@ -152,7 +157,9 @@ class MediaCubit extends Cubit<MediaState> {
   }
 
   Future<void> batchDeleteMedia(List<Media> mediaItems) async {
-    if (state is! MediaLoadedState || mediaItems.isEmpty) return;
+    if (state is! MediaLoadedState || mediaItems.isEmpty) {
+      return;
+    }
     final currentMedia = (state as MediaLoadedState).allMedia;
     try {
       await _repository.batchDeleteMedia(mediaItems);
@@ -172,14 +179,18 @@ class MediaCubit extends Cubit<MediaState> {
       emit(const MediaErrorState('LLM Provider not available'));
       return;
     }
-    if (state is MediaGeneratingState) _cancelGeneration();
+    if (state is MediaGeneratingState) {
+      _cancelGeneration();
+    }
 
     final currentMedia = _getCurrentMedia();
     emit(MediaGeneratingState(prompt: prompt, allMedia: currentMedia));
 
     try {
       final llmProvider = _getLlmProvider();
-      if (llmProvider == null) return;
+      if (llmProvider == null) {
+        return;
+      }
 
       final content = await _generateLlmContent(
         prompt,
@@ -193,7 +204,9 @@ class MediaCubit extends Cubit<MediaState> {
     }
   }
 
-  void cancelGeneration() => _cancelGeneration();
+  void cancelGeneration() {
+    _cancelGeneration();
+  }
 
   Future<void> _loadMedia() async {
     try {
@@ -218,7 +231,12 @@ class MediaCubit extends Cubit<MediaState> {
     LlmProvider llmProvider, {
     int? slideCount,
   }) async {
-    return _generateMediaJson(prompt, llmProvider, slideCount: slideCount);
+    final result = await _generateMediaJson(
+      prompt,
+      llmProvider,
+      slideCount: slideCount,
+    );
+    return result;
   }
 
   Future<String> _generateMediaJson(
@@ -275,7 +293,7 @@ class MediaCubit extends Cubit<MediaState> {
   }
 
   String _buildSystemPrompt(String prompt) {
-    return '''
+    final systemPrompt = '''
 You are a professional slide presentation generator that creates engaging, visually-oriented content. Create a JSON formatted output for a presentation on the topic: "$prompt".
 
 Requirements:
@@ -315,6 +333,7 @@ Additional Guidelines:
 - Tailor content to the expertise level of the intended audience.
 - Your response must be valid, parseable JSON with no additional commentary.
 ''';
+    return systemPrompt;
   }
 
   String _validateAndFixJson(String jsonString, int expectedSlideCount) {
@@ -325,9 +344,9 @@ Additional Guidelines:
       if (slides.length != expectedSlideCount) {
         if (slides.length > expectedSlideCount) {
           jsonData['slides'] = slides.sublist(0, expectedSlideCount);
-          return jsonEncode(jsonData);
+          final fixedJson = jsonEncode(jsonData);
+          return fixedJson;
         } else {
-          // Optionally, add logic to supplement missing slides.
           return jsonString;
         }
       }
@@ -344,9 +363,11 @@ Additional Guidelines:
   }
 
   List<Media> _getCurrentMedia() {
-    return state is MediaLoadedState
-        ? (state as MediaLoadedState).allMedia
-        : [];
+    final mediaList =
+        state is MediaLoadedState
+            ? (state as MediaLoadedState).allMedia
+            : <Media>[];
+    return mediaList;
   }
 
   void _handleError(
@@ -356,7 +377,6 @@ Additional Guidelines:
     List<Media>? allMedia,
   }) {
     final errorMessage = '$message: ${error.toString().split('\n').first}';
-    debugPrint('MediaCubit Error: $message: $error\n$stackTrace');
     emit(
       MediaErrorState(
         errorMessage,
@@ -372,11 +392,12 @@ Additional Guidelines:
       emit(const MediaErrorState('LLM Provider not available from ChatCubit'));
       return null;
     }
-    return VertexProvider(
+    final provider = VertexProvider(
       model: FirebaseVertexAI.instance.generativeModel(
         model: 'gemini-2.0-flash-lite-preview-02-05',
       ),
     );
+    return provider;
   }
 
   @override

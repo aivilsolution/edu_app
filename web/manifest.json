@@ -1,6 +1,6 @@
 {
-    "name": "myapp",
-    "short_name": "myapp",
+    "name": "edu_app",
+    "short_name": "edu_app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

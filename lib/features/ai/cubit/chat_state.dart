@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';

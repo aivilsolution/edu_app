@@ -1,12 +1,13 @@
-import 'package:edu_app/features/ai/bloc/media_cubit.dart';
+import 'package:edu_app/features/ai/cubit/media_cubit.dart';
+import 'package:edu_app/features/ai/cubit/media_state.dart';
 import 'package:edu_app/features/ai/data/repository/media_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import '/features/ai/bloc/chat_cubit.dart';
-import '/features/ai/bloc/chat_state.dart';
+import '/features/ai/cubit/chat_cubit.dart';
+import '/features/ai/cubit/chat_state.dart';
 import '/features/ai/data/models/chat.dart';
 import '/features/ai/views/screens/chats_archive.dart';
 import '/features/ai/views/screens/media_archive.dart';
@@ -18,83 +19,118 @@ class AiPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => ChatCubit(),
-      child: const _AuthProvider(child: _AiPageView()),
+      child: const AuthProvider(child: _AiPageContent()),
     );
   }
 }
 
-class _AuthProvider extends StatelessWidget {
+class AuthProvider extends StatelessWidget {
   final Widget child;
-  const _AuthProvider({required this.child});
+
+  const AuthProvider({super.key, required this.child});
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, userSnapshot) {
-        return FutureBuilder<MediaRepository>(
-          future: MediaRepository.forCurrentUser,
-          builder: (context, mediaRepoSnapshot) {
-            if (mediaRepoSnapshot.hasData) {
-              final mediaRepository = mediaRepoSnapshot.data!;
+        
+        if (userSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-              final chatCubit = BlocProvider.of<ChatCubit>(context);
+        
+        if (!userSnapshot.hasData || userSnapshot.data == null) {
+          return _buildErrorWidget('No user logged in. Please sign in.');
+        }
+        if (userSnapshot.hasError) {
+          return _buildErrorWidget(
+            'Authentication error: ${userSnapshot.error}',
+          );
+        }
 
-              return BlocProvider<MediaCubit>(
-                create:
-                    (context) => MediaCubit(
-                      repository: mediaRepository,
-
-                      chatCubit: chatCubit,
-                    ),
-                child: child,
-              );
-            } else if (mediaRepoSnapshot.hasError) {
-              return Center(child: Text('Failed to load Media Repository'));
-            } else {
-              return const Center(child: CircularProgressIndicator());
-            }
-          },
-        );
+        
+        return _buildMediaRepositoryProvider(context);
       },
     );
   }
-}
 
-class _AiPageView extends StatefulWidget {
-  const _AiPageView();
+  Widget _buildMediaRepositoryProvider(BuildContext context) {
+    return FutureBuilder<MediaRepository>(
+      future: MediaRepository.forCurrentUser,
+      builder: (context, mediaRepoSnapshot) {
+        if (mediaRepoSnapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-  @override
-  State<_AiPageView> createState() => _AiPageViewState();
-}
+        if (mediaRepoSnapshot.hasError) {
+          return _buildRetryWidget(
+            'Failed to load Media Repository',
+            onRetry: () => setState(() {}),
+          );
+        }
 
-class _AiPageViewState extends State<_AiPageView> {
-  final TextEditingController _promptController = TextEditingController();
+        if (mediaRepoSnapshot.hasData) {
+          return _buildMediaCubitProvider(context, mediaRepoSnapshot.data!);
+        }
 
-  @override
-  void dispose() {
-    _promptController.dispose();
-    super.dispose();
+        return _buildErrorWidget('Unexpected state in media repository');
+      },
+    );
   }
 
-  void _showErrorSnackBar(BuildContext context, String message, Object? error) {
-    debugPrint('$message: ${error ?? 'No error details.'}');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$message: ${error ?? 'No error details.'}'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 4),
-        action: SnackBarAction(
-          label: 'Dismiss',
-          onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
-        ),
+  Widget _buildErrorWidget(String message) {
+    return Center(child: Text(message));
+  }
+
+  Widget _buildRetryWidget(String message, {required VoidCallback onRetry}) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(message),
+          const SizedBox(height: 8),
+          TextButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
       ),
     );
   }
 
+  Widget _buildMediaCubitProvider(
+    BuildContext context,
+    MediaRepository mediaRepository,
+  ) {
+    final chatCubit = context.read<ChatCubit>();
+
+    return BlocProvider<MediaCubit>(
+      create:
+          (_) => MediaCubit(repository: mediaRepository, chatCubit: chatCubit),
+      child: BlocListener<MediaCubit, MediaState>(
+        listener: (context, state) {
+          if (state is MediaErrorState) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
+          }
+        },
+        child: child,
+      ),
+    );
+  }
+
+  
+  void setState(VoidCallback fn) {
+    fn();
+  }
+}
+
+class _AiPageContent extends StatelessWidget {
+  const _AiPageContent();
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: _buildAppBar(context, colorScheme),
       body: const _ChatBody(),
@@ -107,40 +143,24 @@ class _AiPageViewState extends State<_AiPageView> {
   ) {
     return AppBar(
       title: const Text("AI Assistant"),
-      leading: _buildArchiveIconButton(context),
+      leading: IconButton(
+        icon: const Icon(Icons.archive_outlined),
+        tooltip: 'Chat Archive',
+        onPressed: () => _openChatArchive(context),
+      ),
       actions: [
-        _buildMediaArchiveIconButton(context),
-        _buildNewChatIconButton(context),
+        IconButton(
+          icon: const Icon(Icons.photo_library_outlined),
+          tooltip: 'Media Archive',
+          onPressed: () => _openMediaArchive(context),
+        ),
+        IconButton(
+          icon: const Icon(Icons.add),
+          tooltip: 'New Chat',
+          onPressed: () => context.read<ChatCubit>().createNewChat(),
+        ),
       ],
     );
-  }
-
-  Widget _buildArchiveIconButton(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.archive_outlined),
-      tooltip: 'Chat Archive',
-      onPressed: () => _openChatArchive(context),
-    );
-  }
-
-  Widget _buildMediaArchiveIconButton(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.photo_library_outlined),
-      tooltip: 'Media Archive',
-      onPressed: () => _openMediaArchive(context),
-    );
-  }
-
-  Widget _buildNewChatIconButton(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.add),
-      tooltip: 'New Chat',
-      onPressed: () => _createNewChat(context),
-    );
-  }
-
-  void _createNewChat(BuildContext context) {
-    context.read<ChatCubit>().createNewChat();
   }
 
   Future<void> _openChatArchive(BuildContext context) async {
@@ -149,18 +169,9 @@ class _AiPageViewState extends State<_AiPageView> {
 
     if (state is ChatLoadingState) return;
 
-    final List<Chat> chats =
-        state is ChatLoadedState
-            ? state.allChats
-            : state is ChatEmptyState
-            ? state.allChats
-            : [];
-    final String selectedChatId =
-        state is ChatLoadedState
-            ? state.currentChat.id
-            : state is ChatEmptyState
-            ? ''
-            : '';
+    
+    final List<Chat> chats = _getChatsFromState(state);
+    final String selectedChatId = _getSelectedChatIdFromState(state);
 
     final selectedChat = await Navigator.of(context).push<Chat?>(
       MaterialPageRoute(
@@ -168,8 +179,8 @@ class _AiPageViewState extends State<_AiPageView> {
             (_) => ChatsArchive(
               chats: chats,
               selectedChatId: selectedChatId,
-              onUpdateChat: (chat) => cubit.updateChat(chat),
-              onDeleteChat: (chat) => cubit.deleteChat(chat),
+              onUpdateChat: cubit.updateChat,
+              onDeleteChat: cubit.deleteChat,
             ),
       ),
     );
@@ -179,10 +190,21 @@ class _AiPageViewState extends State<_AiPageView> {
     }
   }
 
+  List<Chat> _getChatsFromState(ChatState state) {
+    if (state is ChatLoadedState) return state.allChats;
+    if (state is ChatEmptyState) return state.allChats;
+    return [];
+  }
+
+  String _getSelectedChatIdFromState(ChatState state) {
+    if (state is ChatLoadedState) return state.currentChat.id;
+    return '';
+  }
+
   Future<void> _openMediaArchive(BuildContext context) async {
     final mediaCubit = context.read<MediaCubit>();
 
-    Navigator.of(context).push(
+    await Navigator.of(context).push(
       MaterialPageRoute(
         builder:
             (context) => BlocProvider.value(
@@ -203,41 +225,53 @@ class _ChatBody extends StatelessWidget {
       listenWhen: (previous, current) => current is ChatErrorState,
       listener: (context, state) {
         if (state is ChatErrorState) {
-          _getContextViewState(
-            context,
-          )?._showErrorSnackBar(context, state.message, null);
+          _showErrorSnackBar(context, state.message);
         }
       },
       buildWhen: (previous, current) {
-        if (previous.runtimeType != current.runtimeType) return true;
+        if (previous.runtimeType != current.runtimeType) {
+          return true;
+        }
+
         if (previous is ChatLoadedState && current is ChatLoadedState) {
           return previous.currentChat.id != current.currentChat.id;
         }
+
         return false;
       },
       builder: (context, state) {
-        if (state is ChatLoadingState) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is ChatLoadedState) {
-          return _ChatView(state: state);
-        } else if (state is ChatEmptyState) {
-          return const _EmptyChatView();
-        } else {
-          return const Center(
+        return switch (state) {
+          ChatLoadingState() => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          ChatLoadedState() => _ChatView(state: state),
+          ChatEmptyState() => const _EmptyChatView(),
+          _ => const Center(
             child: Text('Something went wrong. Please try again.'),
-          );
-        }
+          ),
+        };
       },
     );
   }
 
-  _AiPageViewState? _getContextViewState(BuildContext context) {
-    return context.findAncestorStateOfType<_AiPageViewState>();
+  void _showErrorSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'Dismiss',
+          onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+        ),
+      ),
+    );
   }
 }
 
 class _ChatView extends StatelessWidget {
   final ChatLoadedState state;
+
   const _ChatView({required this.state});
 
   @override
@@ -271,20 +305,25 @@ class _ChatView extends StatelessWidget {
         required Iterable<Attachment> attachments,
       }) {
         if (prompt.contains('@media')) {
-          String mediaPrompt = prompt.replaceAll('@media', '').trim();
-          try {
-            final mediaCubit = BlocProvider.of<MediaCubit>(context);
-            Future.delayed(Duration(milliseconds: 100), () {
-              mediaCubit.generateMedia(prompt: mediaPrompt);
-            });
-          } catch (e) {
-            debugPrint('Error handling @media prompt: $e');
-            return state.provider.sendMessageStream(mediaPrompt);
-          }
+          return _handleMediaPrompt(context, prompt);
         }
         return state.provider.sendMessageStream(prompt);
       },
     );
+  }
+
+  _handleMediaPrompt(BuildContext context, String prompt) {
+    final mediaPrompt = prompt.replaceAll('@media', '').trim();
+
+    try {
+      final mediaCubit = context.read<MediaCubit>();
+      
+      Future.microtask(() => mediaCubit.generateMedia(prompt: mediaPrompt));
+    } catch (e) {
+      debugPrint('Error handling media prompt: $e');
+    }
+
+    return state.provider.sendMessageStream(mediaPrompt);
   }
 }
 
@@ -295,16 +334,19 @@ class _EmptyChatView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.chat_bubble_outline, size: 48),
           const SizedBox(height: 16),
-          const Text(
-            'No active chat',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+          Text('No active chat', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
           const Text('Please create a new chat to get started'),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => context.read<ChatCubit>().createNewChat(),
+            icon: const Icon(Icons.add),
+            label: const Text('Start new chat'),
+          ),
         ],
       ),
     );

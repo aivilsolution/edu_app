@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_vertexai/firebase_vertexai.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
 
-import '/features/ai/bloc/chat_state.dart';
+import '/features/ai/cubit/chat_state.dart';
 import '/features/ai/data/models/chat.dart';
 import '/features/ai/data/repository/chat_repository.dart';
 
@@ -26,7 +25,6 @@ class ChatCubit extends Cubit<ChatState> {
     return super.close();
   }
 
-  
   Future<void> initialize() async {
     try {
       await _initializeRepository();
@@ -45,9 +43,10 @@ class ChatCubit extends Cubit<ChatState> {
     _currentProvider?.removeListener(_onProviderHistoryChanged);
   }
 
-  
   Future<void> createNewChat() async {
-    if (state is ChatLoadingState) return;
+    if (state is ChatLoadingState) {
+      return;
+    }
 
     emit(const ChatLoadingState());
 
@@ -60,7 +59,9 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   Future<void> loadChat(Chat chat) async {
-    if (state is ChatLoadingState) return;
+    if (state is ChatLoadingState) {
+      return;
+    }
 
     emit(const ChatLoadingState());
 
@@ -94,7 +95,9 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   Future<void> updateChat(Chat updatedChat) async {
-    if (state is! ChatLoadedState) return;
+    if (state is! ChatLoadedState) {
+      return;
+    }
 
     try {
       await _repository.updateChat(updatedChat);
@@ -138,9 +141,10 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  
   Future<void> updateMessage(Chat chat) async {
-    if (state is! ChatLoadedState) return;
+    if (state is! ChatLoadedState) {
+      return;
+    }
 
     final currentState = state as ChatLoadedState;
     final provider = currentState.provider;
@@ -158,10 +162,12 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   bool _shouldGenerateTitle(Chat chat, List<ChatMessage> history) {
-    return history.length >= 2 &&
+    final shouldGenerate =
+        history.length >= 2 &&
         chat.title == ChatRepository.newChatTitle &&
         history[0].origin.isUser &&
         history[1].origin.isLlm;
+    return shouldGenerate;
   }
 
   Future<void> _generateChatTitle(
@@ -191,7 +197,9 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   Future<void> updateChatTitle(Chat chat, String newTitle) async {
-    if (state is! ChatLoadedState) return;
+    if (state is! ChatLoadedState) {
+      return;
+    }
 
     try {
       final updatedChat = Chat(id: chat.id, title: newTitle.trim());
@@ -210,22 +218,22 @@ class ChatCubit extends Cubit<ChatState> {
         );
       }
     } catch (e, stackTrace) {
-      debugPrint('ChatCubit update chat title error: $e\n$stackTrace');
+      emit(ChatErrorState('Failed to update chat title', e, stackTrace));
     }
   }
 
-  
   LlmProvider createProvider([List<ChatMessage>? history]) {
-    return VertexProvider(
+    final provider = VertexProvider(
       history: history ?? [],
       model: FirebaseVertexAI.instance.generativeModel(
         systemInstruction: Content.system('''
-      Only When a user's message includes "@media", reply with a message such as:
-      "Your explanation is being prepared. Please check your media shortly."
-    '''),
+       Only When a user's message includes "@media", reply with a message such as:
+       "Your explanation is being prepared. Please check your media shortly."
+     '''),
         model: 'gemini-2.0-flash-lite-preview-02-05',
       ),
     );
+    return provider;
   }
 
   void _onProviderHistoryChanged() {

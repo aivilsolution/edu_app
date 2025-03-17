@@ -1,15 +1,10 @@
-
-
 import 'dart:convert';
+import 'package:edu_app/features/ai/data/models/media.dart';
+import 'package:edu_app/features/ai/data/models/media_deck_data.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import '/features/ai/data/models/media.dart';
-import '/features/ai/data/models/media_deck_data.dart';
-
-
-
 
 class MediaDeckView extends StatefulWidget {
   final Media media;
@@ -32,7 +27,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     _loadMediaDeck();
   }
 
-  
   Future<void> _loadMediaDeck() async {
     setState(() {
       _isLoading = true;
@@ -70,7 +64,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     }
   }
 
-  
   void _setError(String message) {
     setState(() {
       _errorMessage = message;
@@ -79,7 +72,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     });
   }
 
-  
   String _cleanJsonString(String jsonString) {
     String cleanedString = jsonString.trim();
     if (cleanedString.startsWith('```json')) {
@@ -93,7 +85,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     return cleanedString.trim();
   }
 
-  
   static dynamic _decodeJsonInBackground(String jsonString) {
     return jsonDecode(jsonString);
   }
@@ -107,7 +98,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     );
   }
 
-  
   AppBar _buildAppBar() {
     return AppBar(
       title: Text(
@@ -126,7 +116,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     );
   }
 
-  
   void _copySlideContent(BuildContext context) {
     if (_slides.isNotEmpty) {
       final currentSlide = _slides[_currentSlideIndex];
@@ -142,7 +131,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     }
   }
 
-  
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -159,7 +147,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     return _buildSlideView();
   }
 
-  
   Widget _buildErrorBody() {
     return Center(
       child: Padding(
@@ -185,7 +172,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     );
   }
 
-  
   Widget _buildSlideView() {
     final currentSlide = _slides[_currentSlideIndex];
     return Column(
@@ -196,7 +182,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     );
   }
 
-  
   Widget _buildSlideTitleHeader(String title) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -213,7 +198,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     );
   }
 
-  
   Widget _buildSlideContentDisplay(SlideData slide) {
     final content = slide.content;
     switch (slide.contentType.toLowerCase()) {
@@ -226,7 +210,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     }
   }
 
-  
   Widget _buildMarkdownContent(String content) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -238,7 +221,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     );
   }
 
-  
   Widget _buildTextContent(String content) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -250,7 +232,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     );
   }
 
-  
   Widget _buildUnsupportedContent(String contentType, String content) {
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -261,7 +242,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     );
   }
 
-  
   Widget _buildNavigationBar() {
     return BottomAppBar(
       child: Padding(
@@ -292,12 +272,10 @@ class _MediaDeckViewState extends State<MediaDeckView> {
     );
   }
 
-  
   void _goToPreviousSlide() {
     setState(() => _currentSlideIndex--);
   }
 
-  
   void _goToNextSlide() {
     setState(() => _currentSlideIndex++);
   }

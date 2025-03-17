@@ -1,7 +1,5 @@
-
 import '/features/ai/data/models/chat.dart';
 import 'package:flutter/material.dart';
-
 
 class ChatListView extends StatelessWidget {
   final List<Chat> chats;
@@ -24,7 +22,6 @@ class ChatListView extends StatelessWidget {
     return ListView.builder(
       itemCount: chats.length,
       itemBuilder: (context, index) {
-        
         final chat = chats[chats.length - index - 1];
         final isSelected = chat.id == selectedChatId;
         final chatTitle = chat.title.isNotEmpty ? chat.title : "Untitled";

@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,13 +20,21 @@ class MediaRepository extends ChangeNotifier {
   final User _user;
   final List<Media> _media;
 
-  CollectionReference get _mediaCollection =>
-      _firestore.collection('users/${_user.uid}/media');
+  CollectionReference get _mediaCollection {
+    return _firestore.collection('users/${_user.uid}/media');
+  }
 
-  List<Media> get media => List.unmodifiable(_media);
+  List<Media> get media {
+    return List.unmodifiable(_media);
+  }
 
-  static bool get hasCurrentUser => _currentUser != null;
-  static User? get user => _currentUser;
+  static bool get hasCurrentUser {
+    return _currentUser != null;
+  }
+
+  static User? get user {
+    return _currentUser;
+  }
 
   static set user(User? user) {
     if (user == null) {
@@ -36,7 +43,9 @@ class MediaRepository extends ChangeNotifier {
       return;
     }
 
-    if (user.uid == _currentUser?.uid) return;
+    if (user.uid == _currentUser?.uid) {
+      return;
+    }
 
     _currentUser = user;
     _currentUserRepository = null;
@@ -70,11 +79,12 @@ class MediaRepository extends ChangeNotifier {
       final querySnapshot =
           await collection.orderBy('timestamp', descending: true).get();
 
-      return querySnapshot.docs
-          .map((doc) => Media.fromJson(doc.data()! as Map<String, dynamic>))
-          .toList();
+      final mediaList =
+          querySnapshot.docs
+              .map((doc) => Media.fromJson(doc.data()! as Map<String, dynamic>))
+              .toList();
+      return mediaList;
     } catch (e) {
-      debugPrint('Error loading media: $e');
       return [];
     }
   }
@@ -92,7 +102,6 @@ class MediaRepository extends ChangeNotifier {
       notifyListeners();
       return mediaItem;
     } catch (e) {
-      debugPrint('Error adding media: $e');
       throw Exception('Failed to add media');
     }
   }
@@ -109,7 +118,6 @@ class MediaRepository extends ChangeNotifier {
       _sortMediaByTimestamp();
       notifyListeners();
     } catch (e) {
-      debugPrint('Error updating media: $e');
       throw Exception('Failed to update media');
     }
   }
@@ -124,16 +132,18 @@ class MediaRepository extends ChangeNotifier {
       _media.remove(mediaItem);
       notifyListeners();
     } catch (e) {
-      debugPrint('Error deleting media: $e');
       throw Exception('Failed to delete media');
     }
   }
 
-  void _sortMediaByTimestamp() =>
-      _media.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  void _sortMediaByTimestamp() {
+    _media.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  }
 
   Future<void> batchDeleteMedia(List<Media> mediaItems) async {
-    if (mediaItems.isEmpty) return;
+    if (mediaItems.isEmpty) {
+      return;
+    }
 
     final batch = _firestore.batch();
     final idsToRemove = mediaItems.map((m) => m.id).toSet();
@@ -147,7 +157,6 @@ class MediaRepository extends ChangeNotifier {
       _media.removeWhere((m) => idsToRemove.contains(m.id));
       notifyListeners();
     } catch (e) {
-      debugPrint('Error batch deleting media: $e');
       throw Exception('Failed to batch delete media');
     }
   }
@@ -160,7 +169,6 @@ class MediaRepository extends ChangeNotifier {
       notifyListeners();
       return mediaList;
     } catch (e) {
-      debugPrint('Error refreshing media list: $e');
       throw Exception('Failed to refresh media list');
     }
   }

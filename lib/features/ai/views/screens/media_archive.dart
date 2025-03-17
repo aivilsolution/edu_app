@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:edu_app/features/ai/views/widgets/media_deck_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '/features/ai/bloc/media_cubit.dart';
-import '/features/ai/bloc/media_state.dart';
+import '/features/ai/cubit/media_cubit.dart';
+import '/features/ai/cubit/media_state.dart';
 import '/features/ai/data/models/media.dart';
 import '/features/ai/data/models/media_deck_data.dart';
 
@@ -144,11 +144,7 @@ class MediaCard extends StatelessWidget {
           mediaTitle = mediaDeck.slides.first.title;
         }
       }
-    } on FormatException catch (e) {
-      debugPrint("MediaCard: Format error: $e");
-      mediaTitle = 'Error Loading Title';
     } catch (e) {
-      debugPrint("MediaCard: Load error: ${e.toString()}");
       mediaTitle = 'Error Loading Title';
     }
     return mediaTitle;
@@ -202,9 +198,6 @@ class MediaCard extends StatelessWidget {
   }
 
   void _navigateToMediaDeckView(BuildContext context, Media media) {
-    debugPrint(
-      'MediaCard: Navigating to MediaDeckView with media content: "${media.content}"',
-    );
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => MediaDeckView(media: media)),
     );

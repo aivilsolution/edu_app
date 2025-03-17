@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-
 @immutable
 class MediaDeckData {
   final String version;
@@ -99,7 +98,6 @@ class MediaDeckData {
   );
 }
 
-
 @immutable
 class SlideData {
   final int? slideNumber;
@@ -188,7 +186,6 @@ class SlideData {
     image,
   );
 }
-
 
 @immutable
 class ImageInfo {

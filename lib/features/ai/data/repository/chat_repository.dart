@@ -14,7 +14,8 @@ class ChatRepository extends ChangeNotifier {
     required List<Chat> chats,
   }) : _firestore = firestore,
        _user = user,
-       _chats = chats;
+       _chats = chats,
+       super();
 
   static const newChatTitle = 'Untitled';
   static User? _currentUser;
@@ -26,7 +27,7 @@ class ChatRepository extends ChangeNotifier {
   CollectionReference get _chatsCollection =>
       _firestore.collection('users/${_user.uid}/chats');
 
-  CollectionReference _historyCollection(Chat chat) =>
+  CollectionReference historyCollection(Chat chat) =>
       _chatsCollection.doc(chat.id).collection('history');
 
   List<Chat> get chats => List.unmodifiable(_chats);
@@ -42,7 +43,9 @@ class ChatRepository extends ChangeNotifier {
       return;
     }
 
-    if (user.uid == _currentUser?.uid) return;
+    if (user.uid == _currentUser?.uid) {
+      return;
+    }
 
     _currentUser = user;
     _currentUserRepository = null;
@@ -78,11 +81,12 @@ class ChatRepository extends ChangeNotifier {
   static Future<List<Chat>> _loadChats(CollectionReference collection) async {
     try {
       final querySnapshot = await collection.get();
-      return querySnapshot.docs
-          .map((doc) => Chat.fromJson(doc.data()! as Map<String, dynamic>))
-          .toList();
+      final chats =
+          querySnapshot.docs
+              .map((doc) => Chat.fromJson(doc.data()! as Map<String, dynamic>))
+              .toList();
+      return chats;
     } catch (e) {
-      debugPrint('Error loading chats: $e');
       return [];
     }
   }
@@ -96,7 +100,6 @@ class ChatRepository extends ChangeNotifier {
       notifyListeners();
       return chat;
     } catch (e) {
-      debugPrint('Error adding chat: $e');
       throw Exception('Failed to add chat');
     }
   }
@@ -112,7 +115,6 @@ class ChatRepository extends ChangeNotifier {
       _chats[index] = chat;
       notifyListeners();
     } catch (e) {
-      debugPrint('Error updating chat: $e');
       throw Exception('Failed to update chat');
     }
   }
@@ -127,7 +129,7 @@ class ChatRepository extends ChangeNotifier {
 
       batch.delete(_chatsCollection.doc(chat.id));
 
-      final querySnapshot = await _historyCollection(chat).get();
+      final querySnapshot = await historyCollection(chat).get();
       for (final doc in querySnapshot.docs) {
         batch.delete(doc.reference);
       }
@@ -137,16 +139,17 @@ class ChatRepository extends ChangeNotifier {
       _chats.remove(chat);
       notifyListeners();
 
-      if (_chats.isEmpty) await addChat();
+      if (_chats.isEmpty) {
+        await addChat();
+      }
     } catch (e) {
-      debugPrint('Error deleting chat: $e');
       throw Exception('Failed to delete chat');
     }
   }
 
   Future<List<ChatMessage>> getHistory(Chat chat) async {
     try {
-      final querySnapshot = await _historyCollection(chat).get();
+      final querySnapshot = await historyCollection(chat).get();
 
       final indexedMessages = <int, ChatMessage>{};
       for (final doc in querySnapshot.docs) {
@@ -157,12 +160,13 @@ class ChatRepository extends ChangeNotifier {
         indexedMessages[index] = message;
       }
 
-      return indexedMessages.entries
-          .sortedBy((e) => e.key)
-          .map((e) => e.value)
-          .toList();
+      final history =
+          indexedMessages.entries
+              .sortedBy((e) => e.key)
+              .map((e) => e.value)
+              .toList();
+      return history;
     } catch (e) {
-      debugPrint('Error getting chat history: $e');
       return [];
     }
   }
@@ -174,7 +178,7 @@ class ChatRepository extends ChangeNotifier {
 
       for (var i = 0; i < history.length; i++) {
         final id = i.toString().padLeft(3, '0');
-        final docRef = _historyCollection(chat).doc(id);
+        final docRef = historyCollection(chat).doc(id);
         final docSnapshot = await docRef.get();
 
         if (!docSnapshot.exists) {
@@ -187,7 +191,6 @@ class ChatRepository extends ChangeNotifier {
         await batch.commit();
       }
     } catch (e) {
-      debugPrint('Error updating chat history: $e');
       throw Exception('Failed to update chat history');
     }
   }

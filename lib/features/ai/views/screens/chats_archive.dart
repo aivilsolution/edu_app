@@ -28,16 +28,14 @@ class _ChatsArchiveState extends State<ChatsArchive> {
   void initState() {
     super.initState();
     _selectedChatId = widget.selectedChatId;
-    _chats = List.from(widget.chats); 
+    _chats = List.from(widget.chats);
   }
 
-  
   void _onChatSelected(Chat chat) {
     setState(() => _selectedChatId = chat.id);
     Navigator.pop(context, chat);
   }
 
-  
   Future<void> _onRenameChat(Chat chat) async {
     final controller = TextEditingController(text: chat.title);
 
@@ -70,7 +68,7 @@ class _ChatsArchiveState extends State<ChatsArchive> {
       try {
         final updatedChat = Chat(id: chat.id, title: newTitle.trim());
         widget.onUpdateChat(updatedChat);
-        
+
         setState(() {
           _chats =
               _chats.map((c) => c.id == chat.id ? updatedChat : c).toList();
@@ -81,7 +79,6 @@ class _ChatsArchiveState extends State<ChatsArchive> {
     }
   }
 
-  
   Future<void> _onDeleteChat(Chat chat) async {
     final confirm = await showDialog<bool?>(
       context: context,
@@ -105,7 +102,7 @@ class _ChatsArchiveState extends State<ChatsArchive> {
     if (confirm == true) {
       try {
         widget.onDeleteChat(chat);
-        
+
         setState(() {
           _chats = _chats.where((c) => c.id != chat.id).toList();
         });
@@ -115,9 +112,7 @@ class _ChatsArchiveState extends State<ChatsArchive> {
     }
   }
 
-  
   void _showErrorSnackBar(String message, Object error) {
-    debugPrint('$message: $error');
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('$message: $error')));
