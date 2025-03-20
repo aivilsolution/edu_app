@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:edu_app/features/auth/services/auth_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../models/media.dart';
@@ -8,16 +8,16 @@ import '../models/media.dart';
 class MediaRepository extends ChangeNotifier {
   MediaRepository._({
     required FirebaseFirestore firestore,
-    required User user,
+    required AuthUser user,
     required List<Media> media,
   }) : _firestore = firestore,
        _user = user,
        _media = media;
 
-  static User? _currentUser;
+  static AuthUser? _currentUser;
   static MediaRepository? _currentUserRepository;
   final FirebaseFirestore _firestore;
-  final User _user;
+  final AuthUser _user;
   final List<Media> _media;
 
   CollectionReference get _mediaCollection {
@@ -32,11 +32,11 @@ class MediaRepository extends ChangeNotifier {
     return _currentUser != null;
   }
 
-  static User? get user {
+  static AuthUser? get user {
     return _currentUser;
   }
 
-  static set user(User? user) {
+  static set user(AuthUser? user) {
     if (user == null) {
       _currentUser = null;
       _currentUserRepository = null;

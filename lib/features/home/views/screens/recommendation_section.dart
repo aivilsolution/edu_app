@@ -199,7 +199,7 @@ class MaterialCard extends StatelessWidget {
   }
 }
 
-// Updated Enum Definitions
+
 enum QuestionTopic {
   dataStructures('Data Structures', 1, 101),
   algorithms('Algorithms', 2, 102),
@@ -212,7 +212,7 @@ enum QuestionTopic {
   const QuestionTopic(this.name, this.chapterId, this.questionId);
 
   void onSolve() {
-    // Implement solve logic here
+    
     debugPrint('Solving $name...');
   }
 }
@@ -229,7 +229,7 @@ enum ReviewContent {
   const ReviewContent(this.title, this.icon, this.duration);
 
   void onTap() {
-    // Implement tap logic here
+    
     debugPrint('Opening $title...');
   }
 }

@@ -34,12 +34,10 @@ class AuthProvider extends StatelessWidget {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, userSnapshot) {
-        
         if (userSnapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        
         if (!userSnapshot.hasData || userSnapshot.data == null) {
           return _buildErrorWidget('No user logged in. Please sign in.');
         }
@@ -49,7 +47,6 @@ class AuthProvider extends StatelessWidget {
           );
         }
 
-        
         return _buildMediaRepositoryProvider(context);
       },
     );
@@ -118,7 +115,6 @@ class AuthProvider extends StatelessWidget {
     );
   }
 
-  
   void setState(VoidCallback fn) {
     fn();
   }
@@ -169,7 +165,6 @@ class _AiPageContent extends StatelessWidget {
 
     if (state is ChatLoadingState) return;
 
-    
     final List<Chat> chats = _getChatsFromState(state);
     final String selectedChatId = _getSelectedChatIdFromState(state);
 
@@ -317,7 +312,7 @@ class _ChatView extends StatelessWidget {
 
     try {
       final mediaCubit = context.read<MediaCubit>();
-      
+
       Future.microtask(() => mediaCubit.generateMedia(prompt: mediaPrompt));
     } catch (e) {
       debugPrint('Error handling media prompt: $e');

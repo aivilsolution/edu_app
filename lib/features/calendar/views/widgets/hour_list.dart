@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-/// Displays a scrollable list of hours with a timeline background.
+
 class HourList extends StatelessWidget {
   final DateTime selectedDay;
   final ValueChanged<DateTime> onDateSelected;
@@ -23,10 +23,10 @@ class HourList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate overall height for the timeline background.
+    
     final contentHeight = totalHours * itemHeight + topPadding + bottomPadding;
 
-    // Cache the current time once to avoid multiple DateTime.now() calls.
+    
     final now = DateTime.now();
 
     return Expanded(
@@ -35,7 +35,7 @@ class HourList extends StatelessWidget {
           height: contentHeight,
           child: Stack(
             children: [
-              // Timeline background with line and dots.
+              
               Positioned.fill(
                 child: CustomPaint(
                   painter: TimelinePainter(
@@ -50,7 +50,7 @@ class HourList extends StatelessWidget {
                   ),
                 ),
               ),
-              // List of hour items.
+              
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: horizontalPadding,
@@ -65,7 +65,7 @@ class HourList extends StatelessWidget {
                       index,
                     );
 
-                    // Determine if this hour is the current hour.
+                    
                     final isCurrentHour =
                         (hourDateTime.hour == now.hour) &&
                         (selectedDay.year == now.year) &&
@@ -114,14 +114,14 @@ class TimelinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Define the line width.
+    
     const double lineWidth = 2.0;
 
-    // Calculate the vertical boundaries for the line.
+    
     final double lineTop = topPadding;
     final double lineBottom = size.height - bottomPadding;
 
-    // Instead of drawLine, draw a centered rectangle for a crisper line.
+    
     final double lineLeft = horizontalOffset - lineWidth / 2;
     final Rect lineRect = Rect.fromLTWH(
       lineLeft,
@@ -132,7 +132,7 @@ class TimelinePainter extends CustomPainter {
     final Paint linePaint = Paint()..color = lineColor;
     canvas.drawRect(lineRect, linePaint);
 
-    // Draw dots at each hour.
+    
     final Paint dotPaint = Paint()..color = dotColor;
     for (int i = 0; i < totalHours; i++) {
       final double dotCenterY = topPadding + i * itemHeight + itemHeight / 2;
@@ -151,7 +151,7 @@ class TimelinePainter extends CustomPainter {
       oldDelegate.dotColor != dotColor;
 }
 
-/// Represents an individual hour entry.
+
 class HourItem extends StatelessWidget {
   final DateTime hourDateTime;
   final bool isCurrentHour;
@@ -187,7 +187,7 @@ class HourItem extends StatelessWidget {
   }
 }
 
-/// Displays the formatted hour in a styled container.
+
 class TimeContainer extends StatelessWidget {
   final String formattedHour;
   final bool isCurrentHour;
@@ -229,7 +229,7 @@ class TimeContainer extends StatelessWidget {
   }
 }
 
-/// Indicates the current time.
+
 class CurrentTimeIndicator extends StatelessWidget {
   const CurrentTimeIndicator({super.key});
 

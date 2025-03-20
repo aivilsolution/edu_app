@@ -1,4 +1,4 @@
-// File: lib/core/config/env_config.dart
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class EnvConfig {
@@ -26,7 +26,7 @@ class EnvConfig {
   static String get firebaseWebMeasurementId =>
       dotenv.env['FIREBASE_WEB_MEASUREMENT_ID'] ?? '';
 
-  // Android config
+  
   static String get firebaseAndroidApiKey =>
       dotenv.env['FIREBASE_ANDROID_API_KEY'] ?? '';
 
@@ -42,7 +42,7 @@ class EnvConfig {
   static String get firebaseAndroidStorageBucket =>
       dotenv.env['FIREBASE_ANDROID_STORAGE_BUCKET'] ?? '';
 
-  // iOS config
+  
   static String get firebaseIosApiKey =>
       dotenv.env['FIREBASE_IOS_API_KEY'] ?? '';
 
@@ -60,7 +60,7 @@ class EnvConfig {
   static String get firebaseIosBundleId =>
       dotenv.env['FIREBASE_IOS_BUNDLE_ID'] ?? '';
 
-  // MacOS config
+  
   static String get firebaseMacosApiKey =>
       dotenv.env['FIREBASE_MACOS_API_KEY'] ?? '';
 
@@ -79,7 +79,7 @@ class EnvConfig {
   static String get firebaseMacosBundleId =>
       dotenv.env['FIREBASE_MACOS_BUNDLE_ID'] ?? '';
 
-  // Windows config
+  
   static String get firebaseWindowsApiKey =>
       dotenv.env['FIREBASE_WINDOWS_API_KEY'] ?? '';
 

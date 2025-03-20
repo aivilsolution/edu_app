@@ -6,119 +6,117 @@ import 'auth_state.dart';
 import '/features/ai/data/repository/chat_repository.dart';
 import '/features/ai/data/repository/media_repository.dart';
 
-
 class AuthCubit extends Cubit<AuthState> {
   final AuthService _authService;
   StreamSubscription<AuthUser?>? _authSubscription;
 
-  
   AuthCubit({required AuthService authService})
     : _authService = authService,
-      super(const AuthState()) {
+      super(const AuthInitial()) {
     _initAuthStateListener();
+    initializeAuthState();
   }
 
-  
   void _initAuthStateListener() {
-    _authSubscription = _authService.authStateChanges.listen(
-      (user) {
-        debugPrint('AuthCubit: authStateChanges stream emitted user: $user');
-        if (user != null) {
-          ChatRepository.user = _authService.firebaseCurrentUser;
-          MediaRepository.user = _authService.firebaseCurrentUser;
-          emit(
-            state.logCopy(
-              status: AuthStatus.authenticated,
-              user: user,
-              errorMessage: null,
-            ),
-          );
-        } else {
-          ChatRepository.user = null;
-          MediaRepository.user = null;
-          emit(
-            state.logCopy(
-              status: AuthStatus.unauthenticated,
-              user: null,
-              errorMessage: null,
-            ),
-          );
-        }
-      },
-      onError: (error) {
-        emit(
-          state.copyWith(
-            status: AuthStatus.unauthenticated,
-            user: null,
-            errorMessage: error.toString(),
-          ),
-        );
-      },
-    );
+    _authSubscription = _authService.authStateChanges.listen((user) {
+      debugPrint('AuthCubit: authStateChanges stream emitted user: $user');
+      _handleAuthChange(user);
+    }, onError: (error) => emit(AuthError(error.toString())));
   }
 
-  
-  Future<void> initializeAuthState() async {
-    
-    final user =
-        _authService
-            .firebaseCurrentUser; 
-    if (user != null) {
-      final role = await _authService.getUserRole(
-        user.uid,
-      ); 
-      emit(
-        state.logCopy(
-          status: AuthStatus.authenticated,
-          user: AuthUser(
-            uid: user.uid,
-            email: user.email ?? '',
-            role: role,
-          ), 
-          errorMessage: null,
-        ),
-      );
-    } else {
-      emit(
-        state.logCopy(
-          status: AuthStatus.unauthenticated,
-          user: null,
-          errorMessage: null,
-        ),
-      );
+  Future<void> _handleAuthChange(AuthUser? user) async {
+    try {
+      if (user != null) {
+        await _updateRepositories(user);
+        emit(AuthAuthenticated(user));
+      } else {
+        await _clearRepositories();
+        emit(const AuthUnauthenticated());
+      }
+    } catch (e) {
+      emit(AuthError(e.toString()));
     }
   }
 
-  
+  Future<void> initializeAuthState() async {
+    emit(const AuthLoading());
+    try {
+      final authUser = await _authService.currentUser;
+      if (authUser != null) {
+        await _updateRepositories(authUser);
+        emit(AuthAuthenticated(authUser));
+      } else {
+        emit(const AuthUnauthenticated());
+      }
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<void> _updateRepositories(AuthUser user) async {
+    ChatRepository.user = user;
+    MediaRepository.user = user;
+  }
+
+  Future<void> _clearRepositories() async {
+    ChatRepository.user = null;
+    MediaRepository.user = null;
+  }
+
   Future<void> signIn(String email, String password) async {
     try {
-      emit(state.copyWith(errorMessage: null));
+      emit(const AuthLoading());
       await _authService.signInWithEmailAndPassword(email, password);
     } on AuthException catch (e) {
-      emit(state.copyWith(errorMessage: e.message));
+      emit(AuthUnauthenticated(errorMessage: e.message));
     } catch (e) {
-      emit(state.copyWith(errorMessage: e.toString()));
+      emit(AuthError(e.toString()));
     }
   }
 
-  
+  Future<void> signUp(String email, String password) async {
+    try {
+      emit(const AuthLoading());
+      await _authService.signUpWithEmailAndPassword(email, password);
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    try {
+      emit(const AuthLoading());
+      await _authService.signInWithGoogle();
+    } catch (e) {
+      emit(AuthError(e.toString()));
+    }
+  }
+
   Future<void> signOut() async {
     try {
-      ChatRepository.user = null;
-      MediaRepository.user = null;
+      emit(const AuthLoading());
       await _authService.signOut();
+      await _clearRepositories();
+      emit(const AuthUnauthenticated());
     } catch (e) {
-      emit(state.copyWith(errorMessage: e.toString()));
+      emit(AuthError(e.toString()));
     }
   }
 
-  
-  UserRole? get userRole => state.user?.role;
-
-  
   @override
   Future<void> close() {
     _authSubscription?.cancel();
     return super.close();
+  }
+
+  
+  void logStateChange(AuthState newState) {
+    debugPrint('''
+    AuthState Change:
+    Previous: ${state.runtimeType} 
+    New: ${newState.runtimeType}
+    User: ${newState.user?.email}
+    Error: ${newState.errorMessage}
+    ''');
   }
 }

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartx/dartx.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:edu_app/features/auth/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
 import 'package:uuid/uuid.dart';
@@ -10,7 +10,7 @@ import '../models/chat.dart';
 class ChatRepository extends ChangeNotifier {
   ChatRepository._({
     required FirebaseFirestore firestore,
-    required User user,
+    required AuthUser user,
     required List<Chat> chats,
   }) : _firestore = firestore,
        _user = user,
@@ -18,10 +18,10 @@ class ChatRepository extends ChangeNotifier {
        super();
 
   static const newChatTitle = 'Untitled';
-  static User? _currentUser;
+  static AuthUser? _currentUser;
   static ChatRepository? _currentUserRepository;
   final FirebaseFirestore _firestore;
-  final User _user;
+  final AuthUser _user;
   final List<Chat> _chats;
 
   CollectionReference get _chatsCollection =>
@@ -34,9 +34,9 @@ class ChatRepository extends ChangeNotifier {
 
   static bool get hasCurrentUser => _currentUser != null;
 
-  static User? get user => _currentUser;
+  static AuthUser? get user => _currentUser;
 
-  static set user(User? user) {
+  static set user(AuthUser? user) {
     if (user == null) {
       _currentUser = null;
       _currentUserRepository = null;
@@ -69,10 +69,6 @@ class ChatRepository extends ChangeNotifier {
         user: _currentUser!,
         chats: chats,
       );
-
-      if (chats.isEmpty) {
-        await _currentUserRepository!.addChat();
-      }
     }
 
     return _currentUserRepository!;
@@ -91,8 +87,15 @@ class ChatRepository extends ChangeNotifier {
     }
   }
 
-  Future<Chat> addChat() async {
-    final chat = Chat(id: const Uuid().v4(), title: newChatTitle);
+  
+  Chat createTemporaryChat() {
+    return Chat(id: const Uuid().v4(), title: newChatTitle);
+  }
+
+  
+  Future<Chat> addChat({Chat? temporaryChat}) async {
+    final chat =
+        temporaryChat ?? Chat(id: const Uuid().v4(), title: newChatTitle);
 
     try {
       await _chatsCollection.doc(chat.id).set(chat.toJson());

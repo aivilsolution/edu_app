@@ -8,11 +8,10 @@ class CustomNavBar extends StatelessWidget {
     super.key,
     required this.selectedIndex,
     required this.onDestinationSelected,
-  }) ;
+  });
 
   static const double _iconPadding = 8.0;
 
-  // Helper function to create an icon with consistent padding.
   static Widget _buildPaddedIcon(IconData iconData) {
     return Padding(
       padding: const EdgeInsets.all(_iconPadding),
@@ -20,7 +19,6 @@ class CustomNavBar extends StatelessWidget {
     );
   }
 
-  // Define your navigation destinations in one place.
   static List<NavigationDestination> get _destinations => [
     NavigationDestination(
       icon: _buildPaddedIcon(Icons.home_outlined),
@@ -38,7 +36,7 @@ class CustomNavBar extends StatelessWidget {
       label: '',
     ),
     NavigationDestination(
-      icon: _buildPaddedIcon(Icons.person_outline_rounded),
+      icon: _buildPaddedIcon(Icons.person_outline),
       selectedIcon: _buildPaddedIcon(Icons.person_rounded),
       label: '',
     ),

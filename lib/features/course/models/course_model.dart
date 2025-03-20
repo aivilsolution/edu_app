@@ -12,7 +12,7 @@ class Course extends Equatable {
   final String syllabus;
   final Professor professor;
   final List<Quiz> quizzes;
-  // final List<Analytics> analytics;
+  
   final List<Assignment> assignments;
   final List<Lab> labs;
 
@@ -22,7 +22,7 @@ class Course extends Equatable {
     required this.syllabus,
     required this.professor,
     this.quizzes = const [],
-    // this.analytics = const [],
+    
     this.assignments = const [],
     this.labs = const [],
   });
@@ -43,7 +43,7 @@ class Course extends Equatable {
       syllabus: syllabus ?? this.syllabus,
       professor: professor ?? this.professor,
       quizzes: quizzes ?? this.quizzes,
-      // analytics: analytics ?? this.analytics,
+      
       assignments: assignments ?? this.assignments,
       labs: labs ?? this.labs,
     );
@@ -55,7 +55,7 @@ class Course extends Equatable {
         'syllabus': syllabus,
         'professor': professor.toMap(),
         'quizzes': quizzes.map((q) => q.toMap()).toList(),
-        // 'analytics': analytics.map((x) => x.toMap()).toList(),
+        
         'assignments': assignments.map((a) => a.toMap()).toList(),
         'labs': labs.map((l) => l.toMap()).toList(),
       };
@@ -69,9 +69,9 @@ class Course extends Equatable {
       quizzes: (map['quizzes'] as List<dynamic>? ?? [])
           .map((x) => Quiz.fromMap(x))
           .toList(),
-      // analytics: (map['analytics'] as List<dynamic>? ?? [])
-      //     .map((x) => Analytics.fromMap(x))
-      //     .toList(),
+      
+      
+      
       assignments: (map['assignments'] as List<dynamic>? ?? [])
           .map((x) => Assignment.fromMap(x))
           .toList(),
@@ -88,7 +88,7 @@ class Course extends Equatable {
         syllabus,
         professor,
         quizzes,
-        // analytics,
+        
         assignments,
         labs,
       ];

@@ -1,8 +1,9 @@
-import '/features/home/views/screens/home_screen.dart';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:go_router/go_router.dart';
+import '/features/home/views/screens/home_screen.dart';
 import '/features/ai/views/screens/ai_page.dart';
 import '/features/calendar/views/screens/calendar_page.dart';
 import '/features/profile/views/screens/profile_page.dart';
@@ -14,11 +15,10 @@ class AppRouter {
       GlobalKey<NavigatorState>(debugLabel: 'homeNav');
   static final GlobalKey<NavigatorState> _calendarNavigatorKey =
       GlobalKey<NavigatorState>(debugLabel: 'calendarNav');
-  static final GlobalKey<NavigatorState> _aiNavigatorKey =
-      GlobalKey<NavigatorState>(debugLabel: 'aiNav');
   static final GlobalKey<NavigatorState> _profileNavigatorKey =
       GlobalKey<NavigatorState>(debugLabel: 'profileNav');
-
+  static final GlobalKey<NavigatorState> _aiNavigatorKey =
+      GlobalKey<NavigatorState>(debugLabel: 'aiNav');
   static final GlobalKey<StatefulNavigationShellState> _shellNavigationKey =
       GlobalKey<StatefulNavigationShellState>(debugLabel: 'shellNav');
 
@@ -30,7 +30,6 @@ class AppRouter {
     final homeLocation = state.namedLocation('home');
     final loggedIn = FirebaseAuth.instance.currentUser != null;
     final isOnLoginPage = state.matchedLocation == loginLocation;
-
     if (!loggedIn && !isOnLoginPage) return loginLocation;
     if (loggedIn && isOnLoginPage) return homeLocation;
     return null;
