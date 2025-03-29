@@ -19,10 +19,11 @@ class ChatListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reversedChats = chats.reversed.toList();
     return ListView.builder(
-      itemCount: chats.length,
+      itemCount: reversedChats.length,
       itemBuilder: (context, index) {
-        final chat = chats[chats.length - index - 1];
+        final chat = reversedChats[index];
         final isSelected = chat.id == selectedChatId;
         final chatTitle = chat.title.isNotEmpty ? chat.title : "Untitled";
 
@@ -38,7 +39,7 @@ class ChatListView extends StatelessWidget {
             leading:
                 isSelected
                     ? const Icon(Icons.chevron_right)
-                    : const SizedBox(width: 24),
+                    : const SizedBox(width: 24.0),
             title: Tooltip(
               message: chatTitle,
               child: Text(chatTitle, overflow: TextOverflow.ellipsis),

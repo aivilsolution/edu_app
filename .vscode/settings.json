@@ -3,5 +3,7 @@
     "editor.rulers": [
 
     ],
-    "dart.lineLength": 0
+    "dart.lineLength": 0,
+    "IDX.aI.enableInlineCompletion": true,
+    "IDX.aI.enableCodebaseIndexing": true
 }

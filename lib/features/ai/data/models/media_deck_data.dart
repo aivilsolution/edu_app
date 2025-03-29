@@ -37,7 +37,6 @@ class MediaDeckData {
 
     try {
       return slidesJson
-          .cast<Map<String, dynamic>>()
           .map((slideJson) => SlideData.fromJson(slideJson))
           .toList();
     } catch (e) {

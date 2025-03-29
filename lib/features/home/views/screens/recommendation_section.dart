@@ -86,7 +86,7 @@ class TopicCard extends StatelessWidget {
         side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: InkWell(
-        onTap: () => topic.onSolve(),
+        onTap: topic.onSolve,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -153,7 +153,7 @@ class MaterialCard extends StatelessWidget {
         side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: InkWell(
-        onTap: () => content.onTap(),
+        onTap: content.onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -199,7 +199,6 @@ class MaterialCard extends StatelessWidget {
   }
 }
 
-
 enum QuestionTopic {
   dataStructures('Data Structures', 1, 101),
   algorithms('Algorithms', 2, 102),
@@ -212,8 +211,6 @@ enum QuestionTopic {
   const QuestionTopic(this.name, this.chapterId, this.questionId);
 
   void onSolve() {
-    
-    debugPrint('Solving $name...');
   }
 }
 
@@ -228,8 +225,5 @@ enum ReviewContent {
 
   const ReviewContent(this.title, this.icon, this.duration);
 
-  void onTap() {
-    
-    debugPrint('Opening $title...');
-  }
+  void onTap() {}
 }

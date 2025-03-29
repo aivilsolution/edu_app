@@ -43,8 +43,6 @@ class _MediaDeckViewState extends State<MediaDeckView> {
 
     try {
       final cleanedJsonString = _cleanJsonString(mediaContent);
-      debugPrint("MediaDeckView: Parsed JSON String: $cleanedJsonString");
-
       final jsonData = await compute(
         _decodeJsonInBackground,
         cleanedJsonString,
@@ -57,10 +55,8 @@ class _MediaDeckViewState extends State<MediaDeckView> {
       });
     } on FormatException catch (e) {
       _setError("Content format error: ${e.message}");
-      debugPrint("JSON Format Exception: $e");
     } catch (e) {
       _setError("Failed to load media content.");
-      debugPrint("Error loading media content: $e");
     }
   }
 

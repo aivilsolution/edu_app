@@ -1,9 +1,8 @@
-import 'package:edu_app/features/auth/bloc/auth_cubit.dart';
+import 'package:edu_app/features/auth/auth.dart';
 import 'package:edu_app/features/communication/cubit/message_cubit.dart';
 import 'package:edu_app/features/communication/cubit/message_state.dart';
 import 'package:edu_app/features/communication/models/message.dart';
 import 'package:edu_app/features/communication/models/user.dart';
-import 'package:edu_app/features/communication/services/message_service.dart';
 import 'package:edu_app/features/communication/utils/debouncer.dart';
 import 'package:edu_app/features/communication/views/widgets/date_separator.dart';
 import 'package:edu_app/features/communication/views/widgets/message_bubble.dart';
@@ -34,7 +33,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
     Future.microtask(() {
       _messageCubit.loadMessages(widget.user.uid);
-      MessageService().markMessagesAsRead(widget.user.uid);
     });
   }
 
@@ -112,16 +110,20 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.user.username,
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.user.username,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -285,7 +287,7 @@ class _MessageList extends StatelessWidget {
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
-        final currentUserId = context.read<AuthCubit>().state.user?.uid ?? '';
+        final currentUserId = context.read<AuthBloc>().state.user?.id ?? '';
         final isCurrentUser = message.senderId == currentUserId;
         final showDate = _shouldShowDateSeparator(index);
         final isConsecutive = _isConsecutiveMessage(index, isCurrentUser);
@@ -546,14 +548,6 @@ class _MessageInput extends StatelessWidget {
                       icon: Icons.attach_file,
                       label: 'Document',
                       color: Colors.orange,
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                    _AttachmentOption(
-                      icon: Icons.location_on,
-                      label: 'Location',
-                      color: Colors.green,
                       onTap: () {
                         Navigator.pop(context);
                       },

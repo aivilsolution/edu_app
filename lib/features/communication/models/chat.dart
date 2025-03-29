@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatModel {
@@ -7,7 +6,6 @@ class ChatModel {
   final String username;
   final String? lastMessage;
   final DateTime? lastMessageTime;
-  final bool isUnread;
   final String? photoUrl;
 
   ChatModel({
@@ -16,7 +14,6 @@ class ChatModel {
     required this.username,
     this.lastMessage,
     this.lastMessageTime,
-    this.isUnread = false,
     this.photoUrl,
   });
 
@@ -30,7 +27,6 @@ class ChatModel {
           map['lastMessageTime'] != null
               ? (map['lastMessageTime'] as Timestamp).toDate()
               : null,
-      isUnread: map['isUnread'] ?? false,
       photoUrl: map['photoUrl'],
     );
   }
@@ -42,7 +38,6 @@ class ChatModel {
       'lastMessage': lastMessage,
       'lastMessageTime':
           lastMessageTime != null ? Timestamp.fromDate(lastMessageTime!) : null,
-      'isUnread': isUnread,
       'photoUrl': photoUrl,
     };
   }

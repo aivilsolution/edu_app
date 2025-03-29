@@ -1,9 +1,12 @@
+import '../../../course/models/course.dart';
 import '/features/course/views/screens/course_page.dart';
 import '/shared/widgets/course_card.dart';
 import 'package:flutter/material.dart';
-import '/features/course/models/sample_data.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '/features/course/cubit/course_cubit.dart';
+import '/features/course/cubit/course_state.dart';
 
-class CoursesGridView extends StatelessWidget {
+class CoursesGridView extends StatefulWidget {
   final int crossAxisCount;
   final double spacing;
 
@@ -14,38 +17,54 @@ class CoursesGridView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "My Courses",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+  State<CoursesGridView> createState() => _CoursesGridViewState();
+}
+
+class _CoursesGridViewState extends State<CoursesGridView> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<CourseCubit>().fetchAllCourses();
+  }
+
+  Widget _buildGridView(List<Course> courses) {
+    return GridView.builder(
+      padding: EdgeInsets.all(widget.spacing),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: widget.crossAxisCount,
+        crossAxisSpacing: widget.spacing,
+        mainAxisSpacing: widget.spacing,
+        childAspectRatio: 1,
       ),
-      body: GridView.builder(
-        shrinkWrap: true,
-        padding: EdgeInsets.all(spacing),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          crossAxisSpacing: spacing,
-          mainAxisSpacing: spacing,
-          childAspectRatio: 1,
-        ),
-        itemCount: courses.length,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => CoursePage(course: courses[index]),
+      itemCount: courses.length,
+      itemBuilder: (context, index) {
+        return GestureDetector(
+          onTap:
+              () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => CoursePage(courseId: courses[index].id),
+                ),
               ),
-            ),
-            child: CourseCard(name: courses[index].name, fontSize: 18),
-          );
-        },
-      ),
+          child: CourseCard(name: courses[index].name),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<CourseCubit, CourseState>(
+      builder: (context, state) {
+        if (state is CourseLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is CourseError) {
+          return Center(child: Text('Error: ${state.message}'));
+        } else if (state is CourseLoaded) {
+          return _buildGridView(state.courses);
+        } else {
+          return const Center(child: Text('No courses available.'));
+        }
+      },
     );
   }
 }

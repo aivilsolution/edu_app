@@ -1,28 +1,41 @@
-import '/features/course/models/course_model.dart';
+
+import 'package:edu_app/features/course/models/course_data.dart';
 import 'package:flutter/material.dart';
 
 class ModulesWidget extends StatelessWidget {
-  final Course course;
+  final CourseData courseData;
 
-  const ModulesWidget({super.key, required this.course});
+  const ModulesWidget({super.key, required this.courseData});
 
   @override
   Widget build(BuildContext context) {
     final features = [
       (
         'Assignments',
-        '${course.assignments.where((a) => !a.isSubmitted).length} pending',
-        Icons.assignment
+        '${courseData.assignments.length} items', 
+        Icons.assignment,
       ),
       (
         'Quizzes',
-        '${course.quizzes.where((q) => !q.isCompleted).length} upcoming',
-        Icons.quiz
+        '${courseData.quizzes.length} items', 
+        Icons.quiz,
       ),
-      ('Labs', '${course.labs.length} scheduled', Icons.science),
-      ('Resources', 'View Materials', Icons.library_books),
-      ('Syllabus', 'Course Overview', Icons.menu_book),
-      ('Contact', 'Professor', Icons.contact_mail),
+      (
+        'Labs',
+        '${courseData.labs.length} items',
+        Icons.science,
+      ), 
+      (
+        'Documents',
+        '${courseData.documents.length} files',
+        Icons.library_books,
+      ), 
+      (
+        'Syllabus',
+        '${courseData.syllabus.length} sections',
+        Icons.menu_book,
+      ), 
+      
     ];
 
     return GridView.builder(
@@ -60,23 +73,38 @@ class _FeatureCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon),
-            const Spacer(),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+      elevation: 2, 
+      color: Theme.of(context).cardColor, 
+      child: InkWell(
+        
+        borderRadius: BorderRadius.circular(4), 
+        onTap: () {},
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                icon,
+                size: 32,
+                color: Theme.of(context).primaryColor,
+              ), 
+              const Spacer(),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ), 
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.grey[600],
+                ), 
+              ),
+            ],
+          ),
         ),
       ),
     );

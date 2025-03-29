@@ -1,77 +1,72 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:edu_app/features/auth/services/auth_service.dart';
+import 'package:edu_app/features/auth/auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../models/media.dart';
 
 class MediaRepository extends ChangeNotifier {
+  final FirebaseFirestore _firestore;
+  final AppUser _user;
+  final List<Media> _media;
+
+  static const _mediaCollectionPrefix = 'users';
+
   MediaRepository._({
     required FirebaseFirestore firestore,
-    required AuthUser user,
+    required AppUser user,
     required List<Media> media,
   }) : _firestore = firestore,
        _user = user,
-       _media = media;
+       _media = media {
+    if (kDebugMode) {}
+  }
 
-  static AuthUser? _currentUser;
+  List<Media> get media => List.unmodifiable(_media);
+  CollectionReference get _mediaCollection =>
+      _firestore.collection('$_mediaCollectionPrefix/${_user.id}/media');
+
+  static AppUser? _currentUser;
   static MediaRepository? _currentUserRepository;
-  final FirebaseFirestore _firestore;
-  final AuthUser _user;
-  final List<Media> _media;
 
-  CollectionReference get _mediaCollection {
-    return _firestore.collection('users/${_user.uid}/media');
-  }
+  static bool get hasCurrentUser => _currentUser != null;
+  static AppUser? get user => _currentUser;
 
-  List<Media> get media {
-    return List.unmodifiable(_media);
-  }
-
-  static bool get hasCurrentUser {
-    return _currentUser != null;
-  }
-
-  static AuthUser? get user {
-    return _currentUser;
-  }
-
-  static set user(AuthUser? user) {
-    if (user == null) {
+  static set user(AppUser? newUser) {
+    if (newUser == null) {
       _currentUser = null;
       _currentUserRepository = null;
       return;
     }
 
-    if (user.uid == _currentUser?.uid) {
-      return;
+    if (newUser.id != _currentUser?.id) {
+      _currentUser = newUser;
+      _currentUserRepository = null;
     }
-
-    _currentUser = user;
-    _currentUserRepository = null;
   }
 
   static Future<MediaRepository> get forCurrentUser async {
     if (_currentUser == null) {
-      throw Exception('No user logged in');
+      throw StateError('No user logged in');
     }
 
-    if (_currentUserRepository == null) {
-      final firestore = FirebaseFirestore.instance;
-      final collection = firestore.collection(
-        'users/${_currentUser!.uid}/media',
-      );
-
-      final mediaList = await _loadMedia(collection);
-
-      _currentUserRepository = MediaRepository._(
-        firestore: firestore,
-        user: _currentUser!,
-        media: mediaList,
-      );
-    }
-
+    _currentUserRepository ??= await _createRepositoryForCurrentUser();
     return _currentUserRepository!;
+  }
+
+  static Future<MediaRepository> _createRepositoryForCurrentUser() async {
+    final firestore = FirebaseFirestore.instance;
+    final collection = firestore.collection(
+      '$_mediaCollectionPrefix/${_currentUser!.id}/media',
+    );
+
+    final mediaList = await _loadMedia(collection);
+
+    return MediaRepository._(
+      firestore: firestore,
+      user: _currentUser!,
+      media: mediaList,
+    );
   }
 
   static Future<List<Media>> _loadMedia(CollectionReference collection) async {
@@ -79,12 +74,11 @@ class MediaRepository extends ChangeNotifier {
       final querySnapshot =
           await collection.orderBy('timestamp', descending: true).get();
 
-      final mediaList =
-          querySnapshot.docs
-              .map((doc) => Media.fromJson(doc.data()! as Map<String, dynamic>))
-              .toList();
-      return mediaList;
+      return querySnapshot.docs.map((doc) {
+        return Media.fromJson(doc.data()! as Map<String, dynamic>);
+      }).toList();
     } catch (e) {
+      if (kDebugMode) {}
       return [];
     }
   }
@@ -102,14 +96,15 @@ class MediaRepository extends ChangeNotifier {
       notifyListeners();
       return mediaItem;
     } catch (e) {
-      throw Exception('Failed to add media');
+      if (kDebugMode) {}
+      throw StateError('Failed to add media');
     }
   }
 
   Future<void> updateMedia(Media mediaItem) async {
     final index = _media.indexWhere((m) => m.id == mediaItem.id);
     if (index < 0) {
-      throw Exception('Media not found');
+      throw StateError('Media not found');
     }
 
     try {
@@ -118,13 +113,14 @@ class MediaRepository extends ChangeNotifier {
       _sortMediaByTimestamp();
       notifyListeners();
     } catch (e) {
-      throw Exception('Failed to update media');
+      if (kDebugMode) {}
+      throw StateError('Failed to update media');
     }
   }
 
   Future<void> deleteMedia(Media mediaItem) async {
     if (!_media.contains(mediaItem)) {
-      throw Exception('Media not found');
+      throw StateError('Media not found');
     }
 
     try {
@@ -132,18 +128,13 @@ class MediaRepository extends ChangeNotifier {
       _media.remove(mediaItem);
       notifyListeners();
     } catch (e) {
-      throw Exception('Failed to delete media');
+      if (kDebugMode) {}
+      throw StateError('Failed to delete media');
     }
-  }
-
-  void _sortMediaByTimestamp() {
-    _media.sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   Future<void> batchDeleteMedia(List<Media> mediaItems) async {
-    if (mediaItems.isEmpty) {
-      return;
-    }
+    if (mediaItems.isEmpty) return;
 
     final batch = _firestore.batch();
     final idsToRemove = mediaItems.map((m) => m.id).toSet();
@@ -157,8 +148,13 @@ class MediaRepository extends ChangeNotifier {
       _media.removeWhere((m) => idsToRemove.contains(m.id));
       notifyListeners();
     } catch (e) {
-      throw Exception('Failed to batch delete media');
+      if (kDebugMode) {}
+      throw StateError('Failed to batch delete media');
     }
+  }
+
+  void _sortMediaByTimestamp() {
+    _media.sort((a, b) => b.timestamp.compareTo(a.timestamp));
   }
 
   Future<List<Media>> refreshMediaList() async {
@@ -169,7 +165,8 @@ class MediaRepository extends ChangeNotifier {
       notifyListeners();
       return mediaList;
     } catch (e) {
-      throw Exception('Failed to refresh media list');
+      if (kDebugMode) {}
+      throw StateError('Failed to refresh media list');
     }
   }
 

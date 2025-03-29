@@ -1,98 +1,93 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartx/dartx.dart';
-import 'package:edu_app/features/auth/services/auth_service.dart';
-import 'package:flutter/material.dart';
+import 'package:edu_app/features/auth/auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_ai_toolkit/flutter_ai_toolkit.dart';
 import 'package:uuid/uuid.dart';
 import '../models/chat.dart';
 
 class ChatRepository extends ChangeNotifier {
+  final FirebaseFirestore _firestore;
+  final AppUser _user;
+  final List<Chat> _chats;
+
+  static const newChatTitle = 'Untitled';
+  static const _chatsCollectionPrefix = 'users';
+
   ChatRepository._({
     required FirebaseFirestore firestore,
-    required AuthUser user,
+    required AppUser user,
     required List<Chat> chats,
   }) : _firestore = firestore,
        _user = user,
-       _chats = chats,
-       super();
+       _chats = chats;
 
-  static const newChatTitle = 'Untitled';
-  static AuthUser? _currentUser;
-  static ChatRepository? _currentUserRepository;
-  final FirebaseFirestore _firestore;
-  final AuthUser _user;
-  final List<Chat> _chats;
-
+  List<Chat> get chats => List.unmodifiable(_chats);
   CollectionReference get _chatsCollection =>
-      _firestore.collection('users/${_user.uid}/chats');
+      _firestore.collection('$_chatsCollectionPrefix/${_user.id}/chats');
 
   CollectionReference historyCollection(Chat chat) =>
       _chatsCollection.doc(chat.id).collection('history');
 
-  List<Chat> get chats => List.unmodifiable(_chats);
+  static AppUser? _currentUser;
+  static ChatRepository? _currentUserRepository;
 
   static bool get hasCurrentUser => _currentUser != null;
+  static AppUser? get user => _currentUser;
 
-  static AuthUser? get user => _currentUser;
-
-  static set user(AuthUser? user) {
-    if (user == null) {
+  static set user(AppUser? newUser) {
+    if (newUser == null) {
       _currentUser = null;
       _currentUserRepository = null;
       return;
     }
 
-    if (user.uid == _currentUser?.uid) {
-      return;
+    if (newUser.id != _currentUser?.id) {
+      _currentUser = newUser;
+      _currentUserRepository = null;
     }
-
-    _currentUser = user;
-    _currentUserRepository = null;
   }
 
   static Future<ChatRepository> get forCurrentUser async {
     if (_currentUser == null) {
-      throw Exception('No user logged in');
+      throw StateError('No user logged in');
     }
 
-    if (_currentUserRepository == null) {
-      final firestore = FirebaseFirestore.instance;
-      final collection = firestore.collection(
-        'users/${_currentUser!.uid}/chats',
-      );
-
-      final chats = await _loadChats(collection);
-
-      _currentUserRepository = ChatRepository._(
-        firestore: firestore,
-        user: _currentUser!,
-        chats: chats,
-      );
-    }
-
+    _currentUserRepository ??= await _createRepositoryForCurrentUser();
     return _currentUserRepository!;
+  }
+
+  static Future<ChatRepository> _createRepositoryForCurrentUser() async {
+    final firestore = FirebaseFirestore.instance;
+    final collection = firestore.collection(
+      '$_chatsCollectionPrefix/${_currentUser!.id}/chats',
+    );
+
+    final chats = await _loadChats(collection);
+
+    return ChatRepository._(
+      firestore: firestore,
+      user: _currentUser!,
+      chats: chats,
+    );
   }
 
   static Future<List<Chat>> _loadChats(CollectionReference collection) async {
     try {
       final querySnapshot = await collection.get();
-      final chats =
-          querySnapshot.docs
-              .map((doc) => Chat.fromJson(doc.data()! as Map<String, dynamic>))
-              .toList();
-      return chats;
+      return querySnapshot.docs.map((doc) {
+        return Chat.fromJson(doc.data()! as Map<String, dynamic>);
+      }).toList();
     } catch (e) {
       return [];
     }
   }
 
-  
   Chat createTemporaryChat() {
     return Chat(id: const Uuid().v4(), title: newChatTitle);
   }
 
-  
   Future<Chat> addChat({Chat? temporaryChat}) async {
     final chat =
         temporaryChat ?? Chat(id: const Uuid().v4(), title: newChatTitle);
@@ -103,14 +98,14 @@ class ChatRepository extends ChangeNotifier {
       notifyListeners();
       return chat;
     } catch (e) {
-      throw Exception('Failed to add chat');
+      throw StateError('Failed to add chat');
     }
   }
 
   Future<void> updateChat(Chat chat) async {
     final index = _chats.indexWhere((c) => c.id == chat.id);
     if (index < 0) {
-      throw Exception('Chat not found');
+      throw StateError('Chat not found');
     }
 
     try {
@@ -118,27 +113,25 @@ class ChatRepository extends ChangeNotifier {
       _chats[index] = chat;
       notifyListeners();
     } catch (e) {
-      throw Exception('Failed to update chat');
+      throw StateError('Failed to update chat');
     }
   }
 
   Future<void> deleteChat(Chat chat) async {
     if (!_chats.contains(chat)) {
-      throw Exception('Chat not found');
+      throw StateError('Chat not found');
     }
 
     try {
       final batch = _firestore.batch();
-
       batch.delete(_chatsCollection.doc(chat.id));
 
-      final querySnapshot = await historyCollection(chat).get();
-      for (final doc in querySnapshot.docs) {
+      final historySnapshot = await historyCollection(chat).get();
+      for (final doc in historySnapshot.docs) {
         batch.delete(doc.reference);
       }
 
       await batch.commit();
-
       _chats.remove(chat);
       notifyListeners();
 
@@ -146,15 +139,15 @@ class ChatRepository extends ChangeNotifier {
         await addChat();
       }
     } catch (e) {
-      throw Exception('Failed to delete chat');
+      throw StateError('Failed to delete chat');
     }
   }
 
   Future<List<ChatMessage>> getHistory(Chat chat) async {
     try {
       final querySnapshot = await historyCollection(chat).get();
-
       final indexedMessages = <int, ChatMessage>{};
+
       for (final doc in querySnapshot.docs) {
         final index = int.parse(doc.id);
         final message = ChatMessage.fromJson(
@@ -163,12 +156,10 @@ class ChatRepository extends ChangeNotifier {
         indexedMessages[index] = message;
       }
 
-      final history =
-          indexedMessages.entries
-              .sortedBy((e) => e.key)
-              .map((e) => e.value)
-              .toList();
-      return history;
+      return indexedMessages.entries
+          .sortedBy((e) => e.key)
+          .map((e) => e.value)
+          .toList();
     } catch (e) {
       return [];
     }
@@ -194,8 +185,12 @@ class ChatRepository extends ChangeNotifier {
         await batch.commit();
       }
     } catch (e) {
-      throw Exception('Failed to update chat history');
+      throw StateError('Failed to update chat history');
     }
+  }
+
+  static void clearCache() {
+    _currentUserRepository = null;
   }
 
   @override

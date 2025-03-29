@@ -1,37 +1,45 @@
-
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:edu_app/features/auth/login_page.dart';
+import 'package:edu_app/features/auth/signup_page.dart';
+import 'package:edu_app/features/auth/auth.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '/features/home/views/screens/home_screen.dart';
 import '/features/ai/views/screens/ai_page.dart';
 import '/features/calendar/views/screens/calendar_page.dart';
 import '/features/profile/views/screens/profile_page.dart';
-import '/features/auth/login_info.dart';
 import '/shared/widgets/custom_nav_bar.dart';
 
 class AppRouter {
-  static final GlobalKey<NavigatorState> _homeNavigatorKey =
-      GlobalKey<NavigatorState>(debugLabel: 'homeNav');
-  static final GlobalKey<NavigatorState> _calendarNavigatorKey =
-      GlobalKey<NavigatorState>(debugLabel: 'calendarNav');
-  static final GlobalKey<NavigatorState> _profileNavigatorKey =
-      GlobalKey<NavigatorState>(debugLabel: 'profileNav');
-  static final GlobalKey<NavigatorState> _aiNavigatorKey =
-      GlobalKey<NavigatorState>(debugLabel: 'aiNav');
-  static final GlobalKey<StatefulNavigationShellState> _shellNavigationKey =
-      GlobalKey<StatefulNavigationShellState>(debugLabel: 'shellNav');
+  static final _homeNavigatorKey = GlobalKey<NavigatorState>(
+    debugLabel: 'homeNav',
+  );
+  static final _calendarNavigatorKey = GlobalKey<NavigatorState>(
+    debugLabel: 'calendarNav',
+  );
+  static final _profileNavigatorKey = GlobalKey<NavigatorState>(
+    debugLabel: 'profileNav',
+  );
+  static final _aiNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'aiNav');
+  static final _shellNavigationKey = GlobalKey<StatefulNavigationShellState>(
+    debugLabel: 'shellNav',
+  );
 
   static String? _handleAuthRedirect(
     BuildContext context,
     GoRouterState state,
   ) {
-    final loginLocation = state.namedLocation('login');
-    final homeLocation = state.namedLocation('home');
-    final loggedIn = FirebaseAuth.instance.currentUser != null;
-    final isOnLoginPage = state.matchedLocation == loginLocation;
-    if (!loggedIn && !isOnLoginPage) return loginLocation;
-    if (loggedIn && isOnLoginPage) return homeLocation;
+    final authState = context.read<AuthBloc>().state;
+    final isAuthenticated = authState.status == AuthStatus.authenticated;
+    final isLoginPage = state.matchedLocation == '/login';
+    final isSignupPage = state.matchedLocation == '/signup';
+
+    if (!isAuthenticated && !isLoginPage && !isSignupPage) {
+      return '/login';
+    }
+    if (isAuthenticated && (isLoginPage || isSignupPage)) {
+      return '/';
+    }
     return null;
   }
 
@@ -44,30 +52,25 @@ class AppRouter {
       body: navigationShell,
       bottomNavigationBar: CustomNavBar(
         selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) {
-          if (navigationShell.currentIndex != index) {
-            navigationShell.goBranch(index);
-          }
-        },
+        onDestinationSelected: (index) => navigationShell.goBranch(index),
       ),
     );
   }
 
   static final GoRouter router = GoRouter(
     initialLocation: '/',
-    refreshListenable: LoginInfo.instance,
+    refreshListenable: _refreshListenable,
     redirect: _handleAuthRedirect,
     routes: [
       GoRoute(
         name: 'login',
         path: '/login',
-        builder:
-            (context, state) => SignInScreen(
-              showAuthActionSwitch: true,
-              breakpoint: 600,
-              providers: LoginInfo.authProviders,
-              showPasswordVisibilityToggle: true,
-            ),
+        builder: (_, __) => const LoginPage(),
+      ),
+      GoRoute(
+        name: 'signup',
+        path: '/signup',
+        builder: (_, __) => const SignupPage(),
       ),
       StatefulShellRoute.indexedStack(
         key: _shellNavigationKey,
@@ -79,7 +82,7 @@ class AppRouter {
               GoRoute(
                 name: 'home',
                 path: '/',
-                builder: (context, state) => const HomeScreen(),
+                builder: (_, __) => const HomeScreen(),
               ),
             ],
           ),
@@ -89,7 +92,7 @@ class AppRouter {
               GoRoute(
                 name: 'calendar',
                 path: '/calendar',
-                builder: (context, state) => const CalendarPage(),
+                builder: (_, __) => const CalendarPage(),
               ),
             ],
           ),
@@ -99,7 +102,7 @@ class AppRouter {
               GoRoute(
                 name: 'ai',
                 path: '/ai',
-                builder: (context, state) => const AiPage(),
+                builder: (_, __) => const AiPage(),
               ),
             ],
           ),
@@ -109,7 +112,7 @@ class AppRouter {
               GoRoute(
                 name: 'profile',
                 path: '/profile',
-                builder: (context, state) => const ProfilePage(),
+                builder: (_, __) => const ProfilePage(),
               ),
             ],
           ),
@@ -117,4 +120,13 @@ class AppRouter {
       ),
     ],
   );
+
+  static final ValueNotifier<AuthState> _refreshListenable = ValueNotifier(
+    const AuthState(status: AuthStatus.initial),
+  );
+  static void initializeRefreshListenable(BuildContext context) {
+    context.read<AuthBloc>().stream.listen((authState) {
+      _refreshListenable.value = authState;
+    });
+  }
 }

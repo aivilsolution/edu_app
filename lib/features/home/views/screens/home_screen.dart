@@ -1,5 +1,3 @@
-import 'package:edu_app/features/auth/services/auth_service.dart';
-import 'package:edu_app/main.dart';
 import 'package:flutter/material.dart';
 import '/features/home/views/screens/course_grid_view.dart';
 import '/features/home/views/screens/notification_page.dart';
@@ -17,43 +15,42 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userRole = context.userRole;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Educational App'),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
+            tooltip: 'Notifications',
             onPressed: () => _navigate(context, const NotificationsPage()),
           ),
           IconButton(
             icon: const Icon(Icons.chat_outlined),
+            tooltip: 'Messages',
             onPressed: () => _navigate(context, const CommunicationScreen()),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: ListView(
-          children: [
-            const SizedBox(height: 16),
-            SectionHeader(
-              title: 'My Courses',
-              onAction: () => _navigate(context, const CoursesGridView()),
-            ),
-            const SizedBox(height: 16),
-            const SizedBox(height: 250, child: CourseCarouselView()),
-            const SizedBox(height: 24),
-            if (userRole == UserRole.student) ...[
-              Text(
-                'Recommendations',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              const RecommendationSection(),
-            ],
-          ],
-        ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+        children: [
+          SectionHeader(
+            title: 'My Courses',
+            onAction: () => _navigate(context, const CoursesGridView()),
+          ),
+          const SizedBox(height: 12),
+          const SizedBox(height: 240, child: CourseCarouselView()),
+          const SizedBox(height: 32),
+          Text(
+            'Recommendations',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 16),
+          const RecommendationSection(),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }

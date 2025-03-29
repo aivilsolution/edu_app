@@ -132,13 +132,13 @@ class MediaCard extends StatelessWidget {
     try {
       final mediaContent = media.content;
       if (mediaContent != null && mediaContent.isNotEmpty) {
-        String cleanedJsonString = _cleanJsonString(mediaContent);
-        final dynamic jsonData = await compute(
+        final cleanedJsonString = _cleanJsonString(mediaContent);
+        final jsonData = await compute(
           _decodeJsonInBackground,
           cleanedJsonString,
         );
         final mediaDeck = MediaDeckData.fromJson(jsonData);
-        if (mediaDeck.deckTitle != null && mediaDeck.deckTitle!.isNotEmpty) {
+        if (mediaDeck.deckTitle?.isNotEmpty == true) {
           mediaTitle = mediaDeck.deckTitle!;
         } else if (mediaDeck.slides.isNotEmpty) {
           mediaTitle = mediaDeck.slides.first.title;
@@ -186,7 +186,6 @@ class MediaCard extends StatelessWidget {
             }
           },
         ),
-
         trailing: IconButton(
           icon: const Icon(Icons.delete),
           onPressed:

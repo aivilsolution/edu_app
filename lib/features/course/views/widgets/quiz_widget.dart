@@ -1,16 +1,23 @@
-import '/features/course/models/course_model.dart';
+import 'package:edu_app/features/course/models/course_data.dart';
 import 'package:flutter/material.dart';
 
 class QuizWidget extends StatelessWidget {
   final List<Quiz> quizzes;
 
-  const QuizWidget({super.key, required this.quizzes});
+  const QuizWidget({super.key, this.quizzes = const []});
 
   @override
   Widget build(BuildContext context) {
-    final latestCompletedQuiz = quizzes
-        .where((q) => q.isCompleted)
-        .reduce((a, b) => a.date.isAfter(b.date) ? a : b);
+    
+    if (quizzes.isEmpty) {
+      return const Card(
+        elevation: 1,
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text('No quizzes available yet.', textAlign: TextAlign.center),
+        ),
+      );
+    }
 
     return Card(
       child: Padding(
@@ -20,59 +27,44 @@ class QuizWidget extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.quiz),
+                Icon(Icons.quiz, color: Theme.of(context).primaryColor),
                 const SizedBox(width: 12),
                 Text(
-                  'Latest Quiz Results',
+                  'Quizzes',
                   style: Theme.of(context).textTheme.titleLarge,
-                ),
+                ), 
               ],
             ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildQuizStat(
-                  context,
-                  'Score',
-                  '${latestCompletedQuiz.score}/${latestCompletedQuiz.totalPoints}',
-                  Icons.stars,
-                ),
-                _buildQuizStat(
-                  context,
-                  'Duration',
-                  '${latestCompletedQuiz.duration}m',
-                  Icons.timer,
-                ),
-                _buildQuizStat(
-                  context,
-                  'Type',
-                  latestCompletedQuiz.type.toString().split('.').last,
-                  Icons.category,
-                ),
-              ],
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: quizzes.length,
+              separatorBuilder: (context, index) => const Divider(),
+              itemBuilder: (context, index) {
+                final quiz = quizzes[index];
+                return ListTile(
+                  title: Text(quiz.title),
+                  leading: Icon(
+                    Icons.assignment_turned_in_outlined,
+                    color: Theme.of(context).hintColor,
+                  ),
+                  subtitle: Text(
+                    'Duration: ${quiz.duration} minutes, Questions: ${quiz.totalQuestions}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right,
+                  ), 
+                  
+                  
+                  
+                );
+              },
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildQuizStat(
-      BuildContext context, String label, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-      ],
     );
   }
 }

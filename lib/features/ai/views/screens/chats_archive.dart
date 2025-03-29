@@ -28,7 +28,7 @@ class _ChatsArchiveState extends State<ChatsArchive> {
   void initState() {
     super.initState();
     _selectedChatId = widget.selectedChatId;
-    _chats = List.from(widget.chats);
+    _chats = widget.chats;
   }
 
   void _onChatSelected(Chat chat) {

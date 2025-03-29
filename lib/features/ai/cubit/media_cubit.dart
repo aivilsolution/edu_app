@@ -86,7 +86,6 @@ class MediaCubit extends Cubit<MediaState> {
     if (state is MediaLoadingState) {
       return;
     }
-
     emit(MediaLoadingState(allMedia: _getCurrentMedia()));
     await _loadMedia();
   }
@@ -363,11 +362,9 @@ Additional Guidelines:
   }
 
   List<Media> _getCurrentMedia() {
-    final mediaList =
-        state is MediaLoadedState
-            ? (state as MediaLoadedState).allMedia
-            : <Media>[];
-    return mediaList;
+    return state is MediaLoadedState
+        ? (state as MediaLoadedState).allMedia
+        : <Media>[];
   }
 
   void _handleError(

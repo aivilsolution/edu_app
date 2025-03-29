@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MessageModel {
@@ -8,7 +7,6 @@ class MessageModel {
   final String receiverId;
   final String senderEmail;
   final Timestamp timestamp;
-  final bool isRead;
 
   MessageModel({
     required this.id,
@@ -17,7 +15,6 @@ class MessageModel {
     required this.timestamp,
     required this.receiverId,
     required this.senderEmail,
-    this.isRead = false,
   });
 
   factory MessageModel.fromMap(Map<String, dynamic> map, String docId) {
@@ -28,7 +25,6 @@ class MessageModel {
       receiverId: map['receiverId'] ?? '',
       senderEmail: map['senderEmail'] ?? '',
       timestamp: map['timestamp'] ?? Timestamp.now(),
-      isRead: map['isRead'] ?? false,
     );
   }
 
@@ -39,7 +35,6 @@ class MessageModel {
       'timestamp': timestamp,
       'receiverId': receiverId,
       'senderEmail': senderEmail,
-      'isRead': isRead,
     };
   }
 
@@ -50,7 +45,6 @@ class MessageModel {
     String? receiverId,
     String? senderEmail,
     Timestamp? timestamp,
-    bool? isRead,
   }) {
     return MessageModel(
       id: id ?? this.id,
@@ -59,7 +53,6 @@ class MessageModel {
       receiverId: receiverId ?? this.receiverId,
       senderEmail: senderEmail ?? this.senderEmail,
       timestamp: timestamp ?? this.timestamp,
-      isRead: isRead ?? this.isRead,
     );
   }
 }

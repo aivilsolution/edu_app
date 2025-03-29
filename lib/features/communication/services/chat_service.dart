@@ -4,29 +4,44 @@ import 'package:edu_app/features/communication/models/user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ChatService {
+  
+  static final ChatService _instance = ChatService._internal();
+  factory ChatService() => _instance;
+  ChatService._internal();
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  
   Stream<List<UserModel>> getUsersStream() {
-    return FirebaseFirestore.instance
-        .collection('users')
-        .where('uid', isNotEqualTo: FirebaseAuth.instance.currentUser!.uid)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => UserModel.fromMap(doc.data()))
-              .toList();
-        });
-  }
-
-  Future<UserModel?> getUserById(String userId) async {
-    final doc = await _firestore.collection('users').doc(userId).get();
-    if (doc.exists) {
-      return UserModel.fromMap(doc.data()!);
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      return Stream.value([]);
     }
-    return null;
+
+    return _firestore
+        .collection('users')
+        .where('uid', isNotEqualTo: currentUser.uid)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs
+                  .map((doc) => UserModel.fromMap(doc.data()))
+                  .toList(),
+        );
   }
 
+  
+  Future<UserModel?> getUserById(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      return doc.exists ? UserModel.fromMap(doc.data()!) : null;
+    } catch (e) {
+      throw Exception('Failed to fetch user: $e');
+    }
+  }
+
+  
   Stream<List<ChatModel>> getChatsStream() {
     final currentUser = _auth.currentUser;
     if (currentUser == null) {
@@ -38,7 +53,8 @@ class ChatService {
         .where('participants', arrayContains: currentUser.uid)
         .snapshots()
         .asyncMap((snapshot) async {
-          List<ChatModel> chats = [];
+          final List<ChatModel> chats = [];
+          final Map<String, DocumentSnapshot> userCache = {};
 
           for (var doc in snapshot.docs) {
             final data = doc.data();
@@ -49,38 +65,37 @@ class ChatService {
               orElse: () => '',
             );
 
-            if (otherUserId.isNotEmpty) {
-              final userDoc =
+            if (otherUserId.isEmpty) continue;
+
+            
+            if (!userCache.containsKey(otherUserId)) {
+              userCache[otherUserId] =
                   await _firestore.collection('users').doc(otherUserId).get();
-              if (userDoc.exists) {
-                final userData = userDoc.data()!;
-
-                final isUnread = await _checkUnreadMessages(
-                  doc.id,
-                  otherUserId,
-                );
-
-                chats.add(
-                  ChatModel(
-                    userId: otherUserId,
-                    email: userData['email'] ?? '',
-                    username:
-                        userData['displayName'] ??
-                        userData['email']?.split('@')[0] ??
-                        'User',
-                    lastMessage: data['lastMessage'],
-                    lastMessageTime:
-                        data['lastMessageTime'] != null
-                            ? (data['lastMessageTime'] as Timestamp).toDate()
-                            : null,
-                    isUnread: isUnread,
-                    photoUrl: userData['photoUrl'],
-                  ),
-                );
-              }
             }
+
+            final userDoc = userCache[otherUserId]!;
+            if (!userDoc.exists) continue;
+
+            final userData = userDoc.data() as Map<String, dynamic>;
+            chats.add(
+              ChatModel(
+                userId: otherUserId,
+                email: userData['email'] ?? '',
+                username:
+                    userData['displayName'] ??
+                    userData['email']?.split('@')[0] ??
+                    'User',
+                lastMessage: data['lastMessage'],
+                lastMessageTime:
+                    data['lastMessageTime'] != null
+                        ? (data['lastMessageTime'] as Timestamp).toDate()
+                        : null,
+                photoUrl: userData['photoUrl'],
+              ),
+            );
           }
 
+          
           chats.sort((a, b) {
             if (a.lastMessageTime == null) return 1;
             if (b.lastMessageTime == null) return -1;
@@ -91,35 +106,28 @@ class ChatService {
         });
   }
 
-  Future<bool> _checkUnreadMessages(String chatId, String senderId) async {
-    final currentUser = _auth.currentUser;
-    if (currentUser == null) return false;
-
-    final querySnapshot =
-        await _firestore
-            .collection('chats')
-            .doc(chatId)
-            .collection('messages')
-            .where('senderId', isEqualTo: senderId)
-            .where('isRead', isEqualTo: false)
-            .limit(1)
-            .get();
-
-    return querySnapshot.docs.isNotEmpty;
-  }
-
+  
   Future<void> updateUserProfile({
     required String displayName,
     String? photoUrl,
   }) async {
     final currentUser = _auth.currentUser;
-    if (currentUser == null) return;
+    if (currentUser == null) {
+      throw Exception('No authenticated user found');
+    }
 
-    final userDoc = _firestore.collection('users').doc(currentUser.uid);
+    try {
+      final updateData = {
+        'displayName': displayName,
+        if (photoUrl != null) 'photoUrl': photoUrl,
+      };
 
-    await userDoc.update({
-      'displayName': displayName,
-      if (photoUrl != null) 'photoUrl': photoUrl,
-    });
+      await _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .update(updateData);
+    } catch (e) {
+      throw Exception('Failed to update profile: $e');
+    }
   }
 }

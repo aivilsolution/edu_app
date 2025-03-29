@@ -4,22 +4,26 @@ import 'package:go_router/go_router.dart';
 import 'auth.dart';
 import 'package:edu_app/shared/widgets/auth_components.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class SignupPage extends StatefulWidget {
+  const SignupPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignupPage> createState() => _SignupPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _SignupPageState extends State<SignupPage> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -27,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     context.read<AuthBloc>().add(
-      AuthSignInRequested(
+      AuthSignUpRequested(
         _emailController.text.trim(),
         _passwordController.text,
       ),
@@ -49,6 +53,7 @@ class _LoginPageState extends State<LoginPage> {
         final isLoading = state.status == AuthStatus.authenticating;
 
         return Scaffold(
+          appBar: AppBar(title: const Text('Create Account')),
           body: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -56,6 +61,14 @@ class _LoginPageState extends State<LoginPage> {
                 key: _formKey,
                 child: Column(
                   children: [
+                    AuthTextField(
+                      controller: _nameController,
+                      label: 'Full Name',
+                      icon: Icons.person_outline,
+                      validator: _validateName,
+                      enabled: !isLoading,
+                    ),
+                    const SizedBox(height: 16),
                     AuthTextField(
                       controller: _emailController,
                       label: 'Email',
@@ -72,11 +85,23 @@ class _LoginPageState extends State<LoginPage> {
                       obscureText: true,
                       validator: _validatePassword,
                       enabled: !isLoading,
-                      onFieldSubmitted: (_) => _submitForm(),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                    AuthTextField(
+                      controller: _confirmPasswordController,
+                      label: 'Confirm Password',
+                      icon: Icons.lock_outline,
+                      obscureText: true,
+                      validator:
+                          (value) => _validateConfirmPassword(
+                            value,
+                            _passwordController.text,
+                          ),
+                      enabled: !isLoading,
+                    ),
+                    const SizedBox(height: 16),
                     AuthButton(
-                      label: 'Log In',
+                      label: 'Create Account',
                       isLoading: isLoading,
                       onPressed: _submitForm,
                     ),
@@ -92,9 +117,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 32),
                     AuthFooterLink(
-                      prompt: 'Don\'t have an account? ',
-                      action: 'Sign Up',
-                      onAction: () => context.pushNamed('signup'),
+                      prompt: 'Already have an account? ',
+                      action: 'Log In',
+                      onAction: () => context.pushNamed('login'),
                     ),
                   ],
                 ),
@@ -106,6 +131,8 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
+  String? _validateName(String? value) =>
+      value?.isEmpty ?? true ? 'Name required' : null;
   String? _validateEmail(String? value) =>
       value == null ||
               !RegExp(
@@ -115,4 +142,6 @@ class _LoginPageState extends State<LoginPage> {
           : null;
   String? _validatePassword(String? value) =>
       (value?.length ?? 0) < 6 ? 'Minimum 6 characters' : null;
+  String? _validateConfirmPassword(String? value, String password) =>
+      value != password ? 'Passwords must match' : null;
 }
