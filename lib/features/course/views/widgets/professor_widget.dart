@@ -1,156 +1,318 @@
+// Professor widget - features/course/widgets/professor_widget.dart
 import 'package:edu_app/features/course/cubit/professor_cubit.dart';
 import 'package:edu_app/features/course/cubit/professor_state.dart';
+import 'package:edu_app/features/course/models/professor.dart';
+import 'package:edu_app/shared/widgets/error_view.dart';
+import 'package:edu_app/shared/widgets/loading_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ProfessorWidget extends StatefulWidget {
+class ProfessorWidget
+    extends
+        StatefulWidget {
   final String professorId;
 
-  const ProfessorWidget({super.key, required this.professorId});
+  const ProfessorWidget({
+    super.key,
+    required this.professorId,
+  });
 
   @override
-  State<ProfessorWidget> createState() => _ProfessorWidgetState();
+  State<
+    ProfessorWidget
+  >
+  createState() =>
+      _ProfessorWidgetState();
 }
 
-class _ProfessorWidgetState extends State<ProfessorWidget> {
+class _ProfessorWidgetState
+    extends
+        State<
+          ProfessorWidget
+        > {
   @override
   void initState() {
-    final professorCubit = context.read<ProfessorCubit>();
-    final professorId = widget.professorId;
     super.initState();
-    
-    if (professorId.isNotEmpty &&
-        (professorCubit.state is! ProfessorDetailLoaded ||
-            (professorCubit.state as ProfessorDetailLoaded).professor.id !=
-                professorId)) {
-      professorCubit.fetchProfessorById(widget.professorId);
-    }
+    _fetchProfessor();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ProfessorCubit, ProfessorState>(
-      builder: (context, state) {
-        if (state is ProfessorLoading) {
-          return Card(
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  const LinearProgressIndicator(),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Loading Professor Information...',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+  void didUpdateWidget(
+    ProfessorWidget oldWidget,
+  ) {
+    super.didUpdateWidget(
+      oldWidget,
+    );
+    if (widget.professorId !=
+        oldWidget.professorId) {
+      _fetchProfessor();
+    }
+  }
+
+  void _fetchProfessor() {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (
+        _,
+      ) {
+        final professorCubit =
+            context
+                .read<
+                  ProfessorCubit
+                >();
+        final state =
+            professorCubit.state;
+
+        final isProfessorLoaded =
+            state
+                is ProfessorDetailLoaded &&
+            state.professor.id ==
+                widget.professorId;
+
+        if (widget.professorId.isNotEmpty &&
+            !isProfessorLoaded) {
+          professorCubit.fetchProfessorById(
+            widget.professorId,
           );
-        } else if (state is ProfessorError) {
-          return Card(
-            elevation: 2,
-            color: Colors.red.shade50,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Icon(Icons.error_outline, color: Colors.red.shade800),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Error loading professor information: ${state.message}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.red.shade800),
-                  ),
-                ],
-              ),
-            ),
-          );
-        } else if (state is ProfessorDetailLoaded) {
-          final professor = state.professor;
-          return Card(
-            elevation: 3, 
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ), 
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 28, 
-                        child: Icon(
-                          Icons.person_outline,
-                          size: 36,
-                        ), 
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              professor.name,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ), 
-                            ),
-                            const SizedBox(height: 4),
-                            RichText(
-                              text: TextSpan(
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(color: Colors.grey[700]),
-                                children: <TextSpan>[
-                                  const TextSpan(
-                                    text: 'Department: ',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ), 
-                                  TextSpan(text: professor.department),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.email,
-                        color: Theme.of(context).primaryColor,
-                        size: 20,
-                      ), 
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          professor.email,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          overflow: TextOverflow.ellipsis, 
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                ],
-              ),
-            ),
-          );
-        } else {
-          return const SizedBox.shrink(); 
         }
       },
+    );
+  }
+
+  void _retryFetch() => context
+      .read<
+        ProfessorCubit
+      >()
+      .fetchProfessorById(
+        widget.professorId,
+      );
+
+  @override
+  Widget build(
+    BuildContext context,
+  ) {
+    return BlocSelector<
+      ProfessorCubit,
+      ProfessorState,
+      ProfessorState
+    >(
+      selector:
+          (
+            state,
+          ) =>
+              state,
+      builder: (
+        context,
+        state,
+      ) {
+        return switch (state) {
+          ProfessorLoading() => const LoadingView(
+            message:
+                "Loading Professor...",
+          ),
+          ProfessorError() => ErrorView(
+            message:
+                state.message,
+            onRetry:
+                _retryFetch,
+          ),
+          ProfessorDetailLoaded()
+              when state.professor.id ==
+                  widget.professorId =>
+            _ProfessorCard(
+              professor:
+                  state.professor,
+            ),
+          _ => const SizedBox.shrink(),
+        };
+      },
+    );
+  }
+}
+
+class _ProfessorCard
+    extends
+        StatelessWidget {
+  final Professor professor;
+
+  const _ProfessorCard({
+    required this.professor,
+  });
+
+  void _navigateToProfessorDetail(
+    BuildContext context,
+  ) {}
+
+  @override
+  Widget build(
+    BuildContext context,
+  ) {
+    final theme = Theme.of(
+      context,
+    );
+    final colorScheme =
+        theme.colorScheme;
+
+    return InkWell(
+      onTap:
+          () => _navigateToProfessorDetail(
+            context,
+          ),
+      borderRadius: BorderRadius.circular(
+        16,
+      ),
+      splashColor: colorScheme.primary.withValues(
+        alpha:
+            .1,
+      ),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            16,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(
+            16,
+          ),
+          child: Row(
+            children: [
+              _ProfileIcon(
+                colorScheme:
+                    colorScheme,
+              ),
+              const SizedBox(
+                width:
+                    16,
+              ),
+              _ProfessorInfo(
+                professor:
+                    professor,
+                theme:
+                    theme,
+                colorScheme:
+                    colorScheme,
+              ),
+              const SizedBox(
+                width:
+                    16,
+              ),
+              _MessageButton(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileIcon
+    extends
+        StatelessWidget {
+  final ColorScheme colorScheme;
+
+  const _ProfileIcon({
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(
+    BuildContext context,
+  ) {
+    return Container(
+      width:
+          56,
+      height:
+          56,
+      decoration: BoxDecoration(
+        color:
+            colorScheme.primaryContainer,
+        shape:
+            BoxShape.circle,
+      ),
+      child: Icon(
+        Icons.person_outline,
+        size:
+            32,
+        color:
+            colorScheme.onPrimaryContainer,
+      ),
+    );
+  }
+}
+
+class _ProfessorInfo
+    extends
+        StatelessWidget {
+  final Professor professor;
+  final ThemeData theme;
+  final ColorScheme colorScheme;
+
+  const _ProfessorInfo({
+    required this.professor,
+    required this.theme,
+    required this.colorScheme,
+  });
+
+  @override
+  Widget build(
+    BuildContext context,
+  ) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          Text(
+            professor.name,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight:
+                  FontWeight.w600,
+            ),
+          ),
+          const SizedBox(
+            height:
+                4,
+          ),
+          Text(
+            professor.department,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color:
+                  colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MessageButton
+    extends
+        StatelessWidget {
+  @override
+  Widget build(
+    BuildContext context,
+  ) {
+    final theme = Theme.of(
+      context,
+    );
+
+    return Tooltip(
+      message:
+          "Message Professor",
+      child: IconButton(
+        icon: const Icon(
+          Icons.chat_bubble_outline,
+        ),
+        color:
+            theme.colorScheme.primary,
+        onPressed:
+            () => debugPrint(
+              'Message professor',
+            ),
+        splashRadius:
+            24,
+      ),
     );
   }
 }

@@ -211,6 +211,7 @@ enum QuestionTopic {
   const QuestionTopic(this.name, this.chapterId, this.questionId);
 
   void onSolve() {
+    // No debug print anymore
   }
 }
 
@@ -225,5 +226,7 @@ enum ReviewContent {
 
   const ReviewContent(this.title, this.icon, this.duration);
 
-  void onTap() {}
+  void onTap() {
+    // No debug print anymore
+  }
 }

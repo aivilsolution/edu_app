@@ -1,3 +1,5 @@
+import 'package:edu_app/shared/widgets/custom_app_bar.dart';
+
 import '../../../course/models/course.dart';
 import '/features/course/views/screens/course_page.dart';
 import '/shared/widgets/course_card.dart';
@@ -28,26 +30,30 @@ class _CoursesGridViewState extends State<CoursesGridView> {
   }
 
   Widget _buildGridView(List<Course> courses) {
-    return GridView.builder(
-      padding: EdgeInsets.all(widget.spacing),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: widget.crossAxisCount,
-        crossAxisSpacing: widget.spacing,
-        mainAxisSpacing: widget.spacing,
-        childAspectRatio: 1,
-      ),
-      itemCount: courses.length,
-      itemBuilder: (context, index) {
-        return GestureDetector(
-          onTap:
-              () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => CoursePage(courseId: courses[index].id),
+    return Scaffold(
+      appBar: CustomAppBar(title: "My Courses"),
+      body: GridView.builder(
+        padding: EdgeInsets.all(widget.spacing),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: widget.crossAxisCount,
+          crossAxisSpacing: widget.spacing,
+          mainAxisSpacing: widget.spacing,
+          childAspectRatio: 1,
+        ),
+        itemCount: courses.length,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onTap:
+                () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder:
+                        (context) => CoursePage(courseId: courses[index].id),
+                  ),
                 ),
-              ),
-          child: CourseCard(name: courses[index].name),
-        );
-      },
+            child: CourseCard(name: courses[index].name),
+          );
+        },
+      ),
     );
   }
 

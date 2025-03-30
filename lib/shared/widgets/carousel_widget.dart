@@ -3,19 +3,15 @@ import 'package:flutter/material.dart';
 class CarouselWidget extends StatefulWidget {
   final List<Widget> items;
   final double height;
-  final double dotSize;
-  final Color activeDotColor;
-  final Color inactiveDotColor;
   final ValueChanged? onTap;
+  final double? itemWidth;
 
   const CarouselWidget({
+    this.onTap,
+    this.height = 180,
+    this.itemWidth,
     super.key,
     required this.items,
-    this.height = 180,
-    this.dotSize = 6.0,
-    this.activeDotColor = Colors.white,
-    this.inactiveDotColor = Colors.grey,
-    this.onTap,
   });
 
   @override
@@ -54,7 +50,9 @@ class _CarouselWidgetState extends State<CarouselWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final itemWidth = MediaQuery.of(context).size.width * 0.75;
+    final itemWidth =
+        widget.itemWidth ?? MediaQuery.of(context).size.width * 0.75;
+    final double dotSize = 6.0;
 
     return Column(
       children: [
@@ -77,20 +75,21 @@ class _CarouselWidgetState extends State<CarouselWidget> {
           children: List.generate(
             widget.items.length,
             (index) => Container(
-              width: _currentIndex == index
-                  ? widget.dotSize * 1.4
-                  : widget.dotSize * 1.2,
-              height: widget.dotSize,
-              margin: EdgeInsets.symmetric(horizontal: widget.dotSize / 2),
+              width: _currentIndex == index ? dotSize * 1.4 : dotSize * 1.2,
+              height: dotSize,
+              margin: EdgeInsets.symmetric(horizontal: dotSize / 2),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(widget.dotSize / 2),
-                color: _currentIndex == index
-                    ? widget.activeDotColor
-                    : widget.inactiveDotColor,
+                borderRadius: BorderRadius.circular(dotSize / 2),
+                color:
+                    _currentIndex == index
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.3),
               ),
             ),
           ),
-        )
+        ),
       ],
     );
   }

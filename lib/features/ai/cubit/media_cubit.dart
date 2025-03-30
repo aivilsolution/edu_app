@@ -391,7 +391,7 @@ Additional Guidelines:
     }
     final provider = VertexProvider(
       model: FirebaseVertexAI.instance.generativeModel(
-        model: 'gemini-2.0-flash-lite-preview-02-05',
+        model: 'gemini-2.0-flash-lite',
       ),
     );
     return provider;

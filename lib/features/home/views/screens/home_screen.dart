@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '/features/home/views/screens/course_grid_view.dart';
 import '/features/home/views/screens/notification_page.dart';
 import '/features/home/views/screens/recommendation_section.dart';
-import '/features/communication/views/screens/communication_screen.dart';
 import '/features/home/views/widgets/course_carousel_view.dart';
 import '/shared/widgets/section_header.dart';
+import '/features/profile/views/screens/profile_page.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -25,9 +25,9 @@ class HomeScreen extends StatelessWidget {
             onPressed: () => _navigate(context, const NotificationsPage()),
           ),
           IconButton(
-            icon: const Icon(Icons.chat_outlined),
-            tooltip: 'Messages',
-            onPressed: () => _navigate(context, const CommunicationScreen()),
+            icon: const Icon(Icons.person_outlined),
+            tooltip: 'Profile',
+            onPressed: () => _navigate(context, const ProfilePage()),
           ),
         ],
       ),

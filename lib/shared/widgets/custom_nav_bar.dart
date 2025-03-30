@@ -26,18 +26,18 @@ class CustomNavBar extends StatelessWidget {
       label: '',
     ),
     NavigationDestination(
-      icon: _buildPaddedIcon(Icons.calendar_month_outlined),
-      selectedIcon: _buildPaddedIcon(Icons.calendar_month_rounded),
-      label: '',
-    ),
-    NavigationDestination(
       icon: _buildPaddedIcon(Icons.smart_toy_outlined),
       selectedIcon: _buildPaddedIcon(Icons.smart_toy_rounded),
       label: '',
     ),
     NavigationDestination(
-      icon: _buildPaddedIcon(Icons.person_outline),
-      selectedIcon: _buildPaddedIcon(Icons.person_rounded),
+      icon: _buildPaddedIcon(Icons.question_answer_outlined),
+      selectedIcon: _buildPaddedIcon(Icons.question_answer_rounded),
+      label: '',
+    ),
+    NavigationDestination(
+      icon: _buildPaddedIcon(Icons.calendar_month_outlined),
+      selectedIcon: _buildPaddedIcon(Icons.calendar_month_rounded),
       label: '',
     ),
   ];

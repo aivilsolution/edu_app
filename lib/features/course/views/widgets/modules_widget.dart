@@ -1,107 +1,193 @@
-
-import 'package:edu_app/features/course/models/course_data.dart';
 import 'package:flutter/material.dart';
 
-class ModulesWidget extends StatelessWidget {
-  final CourseData courseData;
-
-  const ModulesWidget({super.key, required this.courseData});
+class ModulesWidget
+    extends
+        StatelessWidget {
+  const ModulesWidget({
+    super.key,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     final features = [
       (
-        'Assignments',
-        '${courseData.assignments.length} items', 
-        Icons.assignment,
+        'Syllabus',
+        Icons.menu_book_outlined,
+        Colors.red,
       ),
       (
-        'Quizzes',
-        '${courseData.quizzes.length} items', 
-        Icons.quiz,
+        'Resources',
+        Icons.description_outlined,
+        Colors.purple,
+      ),
+      (
+        'Assignments',
+        Icons.assignment_outlined,
+        Colors.orange,
       ),
       (
         'Labs',
-        '${courseData.labs.length} items',
-        Icons.science,
-      ), 
-      (
-        'Documents',
-        '${courseData.documents.length} files',
-        Icons.library_books,
-      ), 
-      (
-        'Syllabus',
-        '${courseData.syllabus.length} sections',
-        Icons.menu_book,
-      ), 
-      
+        Icons.science_outlined,
+        Colors.green,
+      ),
     ];
 
     return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap:
+          true,
+      physics:
+          const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 1.2,
+        crossAxisCount:
+            2,
+        mainAxisSpacing:
+            16,
+        crossAxisSpacing:
+            16,
+        childAspectRatio:
+            1.1,
       ),
-      itemCount: features.length,
-      itemBuilder: (context, index) {
+      itemCount:
+          features.length,
+      itemBuilder: (
+        context,
+        index,
+      ) {
+        final (
+          title,
+          icon,
+          color,
+        ) = features[index];
         return _FeatureCard(
-          title: features[index].$1,
-          subtitle: features[index].$2,
-          icon: features[index].$3,
+          title:
+              title,
+          icon:
+              icon,
+          color:
+              color,
         );
       },
     );
   }
 }
 
-class _FeatureCard extends StatelessWidget {
+class _FeatureCard
+    extends
+        StatelessWidget {
   final String title;
-  final String subtitle;
   final IconData icon;
+  final Color color;
 
   const _FeatureCard({
     required this.title,
-    required this.subtitle,
     required this.icon,
+    required this.color,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Card(
-      elevation: 2, 
-      color: Theme.of(context).cardColor, 
+      elevation:
+          2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(
+          16,
+        ),
+      ),
       child: InkWell(
-        
-        borderRadius: BorderRadius.circular(4), 
-        onTap: () {},
-        child: Padding(
-          padding: const EdgeInsets.all(16),
+        borderRadius: BorderRadius.circular(
+          16,
+        ),
+        onTap: () {
+          debugPrint(
+            'Module $title tapped',
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(
+            16,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(
+              16,
+            ),
+            border: Border.all(
+              color: color.withValues(
+                alpha:
+                    0.3,
+              ),
+              width:
+                  1.5,
+            ),
+          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
-              Icon(
-                icon,
-                size: 32,
-                color: Theme.of(context).primaryColor,
-              ), 
+              Container(
+                padding: const EdgeInsets.all(
+                  10,
+                ),
+                decoration: BoxDecoration(
+                  color: color.withValues(
+                    alpha:
+                        0.1,
+                  ),
+                  borderRadius: BorderRadius.circular(
+                    12,
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  size:
+                      26,
+                  color:
+                      color,
+                ),
+              ),
               const Spacer(),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ), 
+                style: const TextStyle(
+                  fontSize:
+                      16,
+                  fontWeight:
+                      FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                ), 
+              const SizedBox(
+                height:
+                    8,
+              ),
+              Row(
+                children: [
+                  Text(
+                    'View',
+                    style: TextStyle(
+                      color:
+                          color,
+                      fontWeight:
+                          FontWeight.w600,
+                      fontSize:
+                          13,
+                    ),
+                  ),
+                  const SizedBox(
+                    width:
+                        4,
+                  ),
+                  Icon(
+                    Icons.arrow_forward,
+                    size:
+                        14,
+                    color:
+                        color,
+                  ),
+                ],
               ),
             ],
           ),
