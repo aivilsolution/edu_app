@@ -33,7 +33,8 @@ class _CarouselWidgetState extends State<CarouselWidget> {
     if (!_controller.hasClients) return;
 
     final position = _controller.position.pixels;
-    final itemWidth = MediaQuery.of(context).size.width * 0.8;
+    final itemWidth =
+        widget.itemWidth ?? MediaQuery.of(context).size.width * 0.75;
     final newIndex = (position / itemWidth).round();
 
     if (newIndex != _currentIndex) {
@@ -52,7 +53,7 @@ class _CarouselWidgetState extends State<CarouselWidget> {
   Widget build(BuildContext context) {
     final itemWidth =
         widget.itemWidth ?? MediaQuery.of(context).size.width * 0.75;
-    final double dotSize = 6.0;
+    const double dotSize = 6.0;
 
     return Column(
       children: [
@@ -63,7 +64,7 @@ class _CarouselWidgetState extends State<CarouselWidget> {
             itemExtent: itemWidth,
             shrinkExtent: itemWidth,
             itemSnapping: true,
-            padding: EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             shape: Border.all(style: BorderStyle.none),
             onTap: widget.onTap,
             children: widget.items,
@@ -77,7 +78,7 @@ class _CarouselWidgetState extends State<CarouselWidget> {
             (index) => Container(
               width: _currentIndex == index ? dotSize * 1.4 : dotSize * 1.2,
               height: dotSize,
-              margin: EdgeInsets.symmetric(horizontal: dotSize / 2),
+              margin: const EdgeInsets.symmetric(horizontal: dotSize / 2),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(dotSize / 2),
                 color:

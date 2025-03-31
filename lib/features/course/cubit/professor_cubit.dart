@@ -1,4 +1,3 @@
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../repositories/professor_repository.dart';
 import 'professor_state.dart';
@@ -13,10 +12,7 @@ class ProfessorCubit extends Cubit<ProfessorState> {
   Future<void> fetchAllProfessors() async {
     try {
       emit(ProfessorLoading());
-      final professors =
-          await _professorRepository
-              .watchAll()
-              .first; 
+      final professors = await _professorRepository.watchAll().first;
       emit(ProfessorsLoaded(professors));
     } on AppException catch (e) {
       emit(ProfessorError(e.message));
@@ -36,7 +32,7 @@ class ProfessorCubit extends Cubit<ProfessorState> {
   Future<void> createProfessor(Professor professor) async {
     try {
       await _professorRepository.create(professor);
-      await fetchAllProfessors(); 
+      await fetchAllProfessors();
     } on AppException catch (e) {
       emit(ProfessorError(e.message));
     }
@@ -45,7 +41,7 @@ class ProfessorCubit extends Cubit<ProfessorState> {
   Future<void> updateProfessor(Professor professor) async {
     try {
       await _professorRepository.update(professor);
-      await fetchAllProfessors(); 
+      await fetchAllProfessors();
     } on AppException catch (e) {
       emit(ProfessorError(e.message));
     }
@@ -54,7 +50,7 @@ class ProfessorCubit extends Cubit<ProfessorState> {
   Future<void> deleteProfessor(String professorId) async {
     try {
       await _professorRepository.delete(professorId);
-      await fetchAllProfessors(); 
+      await fetchAllProfessors();
     } on AppException catch (e) {
       emit(ProfessorError(e.message));
     }

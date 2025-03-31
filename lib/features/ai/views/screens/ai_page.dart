@@ -57,20 +57,13 @@ class AuthProvider extends StatelessWidget {
         if (mediaRepoSnapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (mediaRepoSnapshot.hasError) {
+        if (!mediaRepoSnapshot.hasData) {
           return _buildRetryWidget(
             'Failed to load Media Repository',
             onRetry: () {},
           );
         }
-        if (mediaRepoSnapshot.hasData) {
-          return _buildMediaCubitProvider(
-            context,
-            mediaRepoSnapshot.data!,
-            user,
-          );
-        }
-        return _buildErrorWidget('Unexpected state in media repository');
+        return _buildMediaCubitProvider(context, mediaRepoSnapshot.data!, user);
       },
     );
   }
@@ -215,9 +208,6 @@ class _AiPageContent extends StatelessWidget {
     if (state is ChatLoadedState) {
       return state.allChats;
     }
-    if (state is ChatEmptyState) {
-      return state.allChats;
-    }
     return [];
   }
 
@@ -320,27 +310,18 @@ class _ChatView extends StatelessWidget {
           ),
         ),
       ),
-      messageSender: (
-        String prompt, {
-        required Iterable<Attachment> attachments,
-      }) {
-        if (prompt.contains('@media')) {
-          return _handleMediaPrompt(context, prompt);
-        }
-        return state.provider.sendMessageStream(prompt);
-      },
+      messageSender:
+          (String prompt, {required Iterable<Attachment> attachments}) =>
+              prompt.contains('@media')
+                  ? _handleMediaPrompt(context, prompt)
+                  : state.provider.sendMessageStream(prompt),
     );
   }
 
-  _handleMediaPrompt(BuildContext context, String prompt) {
+  Stream<String> _handleMediaPrompt(BuildContext context, String prompt) {
     final mediaPrompt = prompt.replaceAll('@media', '').trim();
-
-    try {
-      final mediaCubit = context.read<MediaCubit>();
-      Future.microtask(() => mediaCubit.generateMedia(prompt: mediaPrompt));
-    } catch (e) {
-      // Handle exception if necessary, e.g., MediaCubit not found.
-    }
+    final mediaCubit = context.read<MediaCubit>();
+    Future.microtask(() => mediaCubit.generateMedia(prompt: mediaPrompt));
     return state.provider.sendMessageStream(prompt);
   }
 }

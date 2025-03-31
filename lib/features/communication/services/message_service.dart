@@ -11,6 +11,12 @@ class MessageService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String _getChatId(String userId1, String userId2) {
+    if (userId1.isEmpty || userId2.isEmpty) {
+      throw Exception(
+        'Invalid chat: Empty user ID detected! userId1: "$userId1", userId2: "$userId2"',
+      );
+    }
+
     final ids = [userId1, userId2]..sort();
     return ids.join('_chat_');
   }
@@ -20,12 +26,14 @@ class MessageService {
     required String message,
   }) async {
     if (message.trim().isEmpty) return;
+    if (receiverId.isEmpty) {
+      throw Exception('Receiver ID cannot be empty');
+    }
 
     final currentUser = _auth.currentUser;
     if (currentUser == null) {
       throw Exception('No authenticated user found');
     }
-
     try {
       final timestamp = Timestamp.now();
       final chatId = _getChatId(currentUser.uid, receiverId);

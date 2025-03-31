@@ -131,8 +131,8 @@ class MediaCard extends StatelessWidget {
     String mediaTitle = 'Media Preview';
     try {
       final mediaContent = media.content;
-      if (mediaContent != null && mediaContent.isNotEmpty) {
-        final cleanedJsonString = _cleanJsonString(mediaContent);
+      if (mediaContent?.isNotEmpty == true) {
+        final cleanedJsonString = _cleanJsonString(mediaContent!);
         final jsonData = await compute(
           _decodeJsonInBackground,
           cleanedJsonString,

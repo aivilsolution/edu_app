@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/course.dart';
 import '../utils/exceptions.dart';

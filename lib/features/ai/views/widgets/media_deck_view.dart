@@ -99,7 +99,7 @@ class _MediaDeckViewState extends State<MediaDeckView> {
       title: Text(
         _isLoading
             ? "Loading Media Deck..."
-            : (widget.media.id.isNotEmpty ? "Media Deck" : "Media Deck"),
+            : (widget.media.uid.isNotEmpty ? "Media Deck" : "Media Deck"),
       ),
       actions: [
         if (!_isLoading && _slides.isNotEmpty)

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatModel {
-  final String userId;
+  final String uid;
   final String email;
   final String username;
   final String? lastMessage;
@@ -9,7 +9,7 @@ class ChatModel {
   final String? photoUrl;
 
   ChatModel({
-    required this.userId,
+    required this.uid,
     required this.email,
     required this.username,
     this.lastMessage,
@@ -17,9 +17,9 @@ class ChatModel {
     this.photoUrl,
   });
 
-  factory ChatModel.fromMap(Map<String, dynamic> map, String userId) {
+  factory ChatModel.fromMap(Map<String, dynamic> map, String uid) {
     return ChatModel(
-      userId: userId,
+      uid: uid,
       email: map['email'] ?? '',
       username: map['displayName'] ?? map['email']?.split('@')[0] ?? 'User',
       lastMessage: map['lastMessage'],
@@ -33,6 +33,7 @@ class ChatModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'uid': uid,
       'email': email,
       'username': username,
       'lastMessage': lastMessage,

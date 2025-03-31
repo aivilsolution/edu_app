@@ -56,7 +56,7 @@ class _CourseCarouselViewState extends State<CourseCarouselView> {
             return const Center(child: CircularProgressIndicator());
           }
         } else {
-          return const Center(child: Text(''));
+          return const SizedBox.shrink();
         }
       },
     );

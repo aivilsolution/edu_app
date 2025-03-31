@@ -66,8 +66,10 @@ class _UserList extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     if (users.isEmpty) {
-      return Center(
-        child: Text('No users available', style: textTheme.displayLarge),
+      return Scaffold(
+        body: Center(
+          child: Text('No users available', style: textTheme.displayLarge),
+        ),
       );
     }
 
@@ -82,7 +84,6 @@ class _UserList extends StatelessWidget {
             child: user.photoUrl == null ? Text(user.initials) : null,
           ),
           title: Text(user.username, style: textTheme.bodyMedium),
-          subtitle: Text(user.email, style: textTheme.bodyMedium),
           onTap: () => _navigateToChatScreen(context, user),
         );
       },

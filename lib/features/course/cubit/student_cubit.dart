@@ -1,4 +1,3 @@
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../repositories/student_repository.dart';
 import 'student_state.dart';
@@ -13,10 +12,7 @@ class StudentCubit extends Cubit<StudentState> {
   Future<void> fetchAllStudents() async {
     try {
       emit(StudentLoading());
-      final students =
-          await _studentRepository
-              .watchAll()
-              .first; 
+      final students = await _studentRepository.watchAll().first;
       emit(StudentsLoaded(students));
     } on AppException catch (e) {
       emit(StudentError(e.message));
@@ -36,7 +32,7 @@ class StudentCubit extends Cubit<StudentState> {
   Future<void> createStudent(Student student) async {
     try {
       await _studentRepository.create(student);
-      await fetchAllStudents(); 
+      await fetchAllStudents();
     } on AppException catch (e) {
       emit(StudentError(e.message));
     }
@@ -45,7 +41,7 @@ class StudentCubit extends Cubit<StudentState> {
   Future<void> updateStudent(Student student) async {
     try {
       await _studentRepository.update(student);
-      await fetchAllStudents(); 
+      await fetchAllStudents();
     } on AppException catch (e) {
       emit(StudentError(e.message));
     }
@@ -54,7 +50,7 @@ class StudentCubit extends Cubit<StudentState> {
   Future<void> deleteStudent(String studentId) async {
     try {
       await _studentRepository.delete(studentId);
-      await fetchAllStudents(); 
+      await fetchAllStudents();
     } on AppException catch (e) {
       emit(StudentError(e.message));
     }

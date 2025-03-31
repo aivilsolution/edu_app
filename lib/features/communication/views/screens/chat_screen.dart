@@ -287,7 +287,7 @@ class _MessageList extends StatelessWidget {
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
-        final currentUserId = context.read<AuthBloc>().state.user?.id ?? '';
+        final currentUserId = context.read<AuthBloc>().state.user?.uid ?? '';
         final isCurrentUser = message.senderId == currentUserId;
         final showDate = _shouldShowDateSeparator(index);
         final isConsecutive = _isConsecutiveMessage(index, isCurrentUser);

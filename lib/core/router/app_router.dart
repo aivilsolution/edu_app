@@ -11,65 +11,25 @@ import '/features/calendar/views/screens/calendar_page.dart';
 import '/shared/widgets/custom_nav_bar.dart';
 
 class AppRouter {
-  static final _homeNavigatorKey = GlobalKey<
-    NavigatorState
-  >(
-    debugLabel:
-        'homeNav',
-  );
-  static final _aiNavigatorKey = GlobalKey<
-    NavigatorState
-  >(
-    debugLabel:
-        'aiNav',
-  );
-  static final _communicationNavigatorKey = GlobalKey<
-    NavigatorState
-  >(
-    debugLabel:
-        'CommunicationNav',
-  );
-  static final _calendarNavigatorKey = GlobalKey<
-    NavigatorState
-  >(
-    debugLabel:
-        'calendarNav',
-  );
-  static final _shellNavigationKey = GlobalKey<
-    StatefulNavigationShellState
-  >(
-    debugLabel:
-        'shellNav',
-  );
+  static final _homeNavigatorKey = GlobalKey<NavigatorState>();
+  static final _aiNavigatorKey = GlobalKey<NavigatorState>();
+  static final _communicationNavigatorKey = GlobalKey<NavigatorState>();
+  static final _calendarNavigatorKey = GlobalKey<NavigatorState>();
+  static final _shellNavigationKey = GlobalKey<StatefulNavigationShellState>();
 
   static String? _handleAuthRedirect(
     BuildContext context,
     GoRouterState state,
   ) {
-    final authState =
-        context
-            .read<
-              AuthBloc
-            >()
-            .state;
-    final isAuthenticated =
-        authState.status ==
-        AuthStatus.authenticated;
-    final isLoginPage =
-        state.matchedLocation ==
-        '/login';
-    final isSignupPage =
-        state.matchedLocation ==
-        '/signup';
+    final authState = context.read<AuthBloc>().state;
+    final isAuthenticated = authState.status == AuthStatus.authenticated;
+    final isLoginPage = state.matchedLocation == '/login';
+    final isSignupPage = state.matchedLocation == '/signup';
 
-    if (!isAuthenticated &&
-        !isLoginPage &&
-        !isSignupPage) {
+    if (!isAuthenticated && !isLoginPage && !isSignupPage) {
       return '/login';
     }
-    if (isAuthenticated &&
-        (isLoginPage ||
-            isSignupPage)) {
+    if (isAuthenticated && (isLoginPage || isSignupPage)) {
       return '/';
     }
     return null;
@@ -81,128 +41,70 @@ class AppRouter {
     StatefulNavigationShell navigationShell,
   ) {
     return Scaffold(
-      body:
-          navigationShell,
+      body: navigationShell,
       bottomNavigationBar: CustomNavBar(
-        selectedIndex:
-            navigationShell.currentIndex,
-        onDestinationSelected:
-            (
-              index,
-            ) => navigationShell.goBranch(
-              index,
-            ),
+        selectedIndex: navigationShell.currentIndex,
+        onDestinationSelected: (index) => navigationShell.goBranch(index),
       ),
     );
   }
 
   static final GoRouter router = GoRouter(
-    initialLocation:
-        '/',
-    refreshListenable:
-        _refreshListenable,
-    redirect:
-        _handleAuthRedirect,
+    initialLocation: '/',
+    refreshListenable: _refreshListenable,
+    redirect: _handleAuthRedirect,
     routes: [
       GoRoute(
-        name:
-            'login',
-        path:
-            '/login',
-        builder:
-            (
-              _,
-              __,
-            ) =>
-                const LoginPage(),
+        name: 'login',
+        path: '/login',
+        builder: (_, __) => const LoginPage(),
       ),
       GoRoute(
-        name:
-            'signup',
-        path:
-            '/signup',
-        builder:
-            (
-              _,
-              __,
-            ) =>
-                const SignupPage(),
+        name: 'signup',
+        path: '/signup',
+        builder: (_, __) => const SignupPage(),
       ),
       StatefulShellRoute.indexedStack(
-        key:
-            _shellNavigationKey,
-        builder:
-            _buildShell,
+        key: _shellNavigationKey,
+        builder: _buildShell,
         branches: [
           StatefulShellBranch(
-            navigatorKey:
-                _homeNavigatorKey,
+            navigatorKey: _homeNavigatorKey,
             routes: [
               GoRoute(
-                name:
-                    'home',
-                path:
-                    '/',
-                builder:
-                    (
-                      _,
-                      __,
-                    ) =>
-                        const HomeScreen(),
+                name: 'home',
+                path: '/',
+                builder: (_, __) => const HomeScreen(),
               ),
             ],
           ),
           StatefulShellBranch(
-            navigatorKey:
-                _aiNavigatorKey,
+            navigatorKey: _aiNavigatorKey,
             routes: [
               GoRoute(
-                name:
-                    'ai',
-                path:
-                    '/ai',
-                builder:
-                    (
-                      _,
-                      __,
-                    ) =>
-                        const AiPage(),
+                name: 'ai',
+                path: '/ai',
+                builder: (_, __) => const AiPage(),
               ),
             ],
           ),
           StatefulShellBranch(
-            navigatorKey:
-                _communicationNavigatorKey,
+            navigatorKey: _communicationNavigatorKey,
             routes: [
               GoRoute(
-                name:
-                    'Communication',
-                path:
-                    '/Communication',
-                builder:
-                    (
-                      _,
-                      __,
-                    ) =>
-                        const CommunicationScreen(),
+                name: 'Communication',
+                path: '/Communication',
+                builder: (_, __) => const CommunicationScreen(),
               ),
             ],
           ),
           StatefulShellBranch(
-            navigatorKey:
-                _calendarNavigatorKey,
+            navigatorKey: _calendarNavigatorKey,
             routes: [
               GoRoute(
-                name:
-                    'calendar',
-                path:
-                    '/calendar',
-                builder:
-                    (
-                      _,
-                      __,
-                    ) =>
-                        const CalendarPage(),
+                name: 'calendar',
+                path: '/calendar',
+                builder: (_, __) => const CalendarPage(),
               ),
             ],
           ),
@@ -211,29 +113,12 @@ class AppRouter {
     ],
   );
 
-  static final ValueNotifier<
-    AuthState
-  >
-  _refreshListenable = ValueNotifier(
-    const AuthState(
-      status:
-          AuthStatus.initial,
-    ),
+  static final ValueNotifier<AuthState> _refreshListenable = ValueNotifier(
+    const AuthState(status: AuthStatus.initial),
   );
-  static void initializeRefreshListenable(
-    BuildContext context,
-  ) {
-    context
-        .read<
-          AuthBloc
-        >()
-        .stream
-        .listen(
-          (
-            authState,
-          ) {
-            _refreshListenable.value = authState;
-          },
-        );
+  static void initializeRefreshListenable(BuildContext context) {
+    context.read<AuthBloc>().stream.listen((authState) {
+      _refreshListenable.value = authState;
+    });
   }
 }

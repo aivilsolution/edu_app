@@ -1,4 +1,4 @@
-// shared/widgets/loading_view.dart
+
 import 'package:flutter/material.dart';
 
 class LoadingView extends StatelessWidget {

@@ -8,21 +8,17 @@ class MessageCubit extends Cubit<MessageState> {
   MessageCubit(this._messageService) : super(MessageInitial());
 
   void loadMessages(String receiverId) {
-    try {
-      emit(MessageLoading());
-      _messageService
-          .getMessagesStream(receiverId)
-          .listen(
-            (messages) {
-              emit(MessageLoaded(messages, receiverId));
-            },
-            onError: (error) {
-              emit(MessageError(error.toString()));
-            },
-          );
-    } catch (e) {
-      emit(MessageError(e.toString()));
-    }
+    emit(MessageLoading());
+    _messageService
+        .getMessagesStream(receiverId)
+        .listen(
+          (messages) {
+            emit(MessageLoaded(messages, receiverId));
+          },
+          onError: (error) {
+            emit(MessageError(error.toString()));
+          },
+        );
   }
 
   Future<void> sendMessage({

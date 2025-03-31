@@ -7,7 +7,7 @@ import '../models/media.dart';
 
 class MediaRepository extends ChangeNotifier {
   final FirebaseFirestore _firestore;
-  final AppUser _user;
+  final AppUser? _user;
   final List<Media> _media;
 
   static const _mediaCollectionPrefix = 'users';
@@ -18,13 +18,11 @@ class MediaRepository extends ChangeNotifier {
     required List<Media> media,
   }) : _firestore = firestore,
        _user = user,
-       _media = media {
-    if (kDebugMode) {}
-  }
+       _media = media;
 
   List<Media> get media => List.unmodifiable(_media);
   CollectionReference get _mediaCollection =>
-      _firestore.collection('$_mediaCollectionPrefix/${_user.id}/media');
+      _firestore.collection('$_mediaCollectionPrefix/${_user!.uid}/media');
 
   static AppUser? _currentUser;
   static MediaRepository? _currentUserRepository;
@@ -39,7 +37,7 @@ class MediaRepository extends ChangeNotifier {
       return;
     }
 
-    if (newUser.id != _currentUser?.id) {
+    if (newUser.uid != _currentUser?.uid) {
       _currentUser = newUser;
       _currentUserRepository = null;
     }
@@ -57,7 +55,7 @@ class MediaRepository extends ChangeNotifier {
   static Future<MediaRepository> _createRepositoryForCurrentUser() async {
     final firestore = FirebaseFirestore.instance;
     final collection = firestore.collection(
-      '$_mediaCollectionPrefix/${_currentUser!.id}/media',
+      '$_mediaCollectionPrefix/${_currentUser!.uid}/media',
     );
 
     final mediaList = await _loadMedia(collection);
@@ -78,42 +76,39 @@ class MediaRepository extends ChangeNotifier {
         return Media.fromJson(doc.data()! as Map<String, dynamic>);
       }).toList();
     } catch (e) {
-      if (kDebugMode) {}
       return [];
     }
   }
 
   Future<Media> addMedia({String? content}) async {
     final mediaItem = Media(
-      id: const Uuid().v4(),
+      uid: const Uuid().v4(),
       timestamp: DateTime.now(),
       content: content,
     );
 
     try {
-      await _mediaCollection.doc(mediaItem.id).set(mediaItem.toJson());
+      await _mediaCollection.doc(mediaItem.uid).set(mediaItem.toJson());
       _media.insert(0, mediaItem);
       notifyListeners();
       return mediaItem;
     } catch (e) {
-      if (kDebugMode) {}
       throw StateError('Failed to add media');
     }
   }
 
   Future<void> updateMedia(Media mediaItem) async {
-    final index = _media.indexWhere((m) => m.id == mediaItem.id);
+    final index = _media.indexWhere((m) => m.uid == mediaItem.uid);
     if (index < 0) {
       throw StateError('Media not found');
     }
 
     try {
-      await _mediaCollection.doc(mediaItem.id).update(mediaItem.toJson());
+      await _mediaCollection.doc(mediaItem.uid).update(mediaItem.toJson());
       _media[index] = mediaItem;
       _sortMediaByTimestamp();
       notifyListeners();
     } catch (e) {
-      if (kDebugMode) {}
       throw StateError('Failed to update media');
     }
   }
@@ -124,11 +119,10 @@ class MediaRepository extends ChangeNotifier {
     }
 
     try {
-      await _mediaCollection.doc(mediaItem.id).delete();
+      await _mediaCollection.doc(mediaItem.uid).delete();
       _media.remove(mediaItem);
       notifyListeners();
     } catch (e) {
-      if (kDebugMode) {}
       throw StateError('Failed to delete media');
     }
   }
@@ -137,18 +131,17 @@ class MediaRepository extends ChangeNotifier {
     if (mediaItems.isEmpty) return;
 
     final batch = _firestore.batch();
-    final idsToRemove = mediaItems.map((m) => m.id).toSet();
+    final idsToRemove = mediaItems.map((m) => m.uid).toSet();
 
-    for (final id in idsToRemove) {
-      batch.delete(_mediaCollection.doc(id));
+    for (final uid in idsToRemove) {
+      batch.delete(_mediaCollection.doc(uid));
     }
 
     try {
       await batch.commit();
-      _media.removeWhere((m) => idsToRemove.contains(m.id));
+      _media.removeWhere((m) => idsToRemove.contains(m.uid));
       notifyListeners();
     } catch (e) {
-      if (kDebugMode) {}
       throw StateError('Failed to batch delete media');
     }
   }
@@ -165,7 +158,6 @@ class MediaRepository extends ChangeNotifier {
       notifyListeners();
       return mediaList;
     } catch (e) {
-      if (kDebugMode) {}
       throw StateError('Failed to refresh media list');
     }
   }

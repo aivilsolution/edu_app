@@ -21,15 +21,8 @@ class ChatsArchive extends StatefulWidget {
 }
 
 class _ChatsArchiveState extends State<ChatsArchive> {
-  String _selectedChatId = '';
-  late List<Chat> _chats;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedChatId = widget.selectedChatId;
-    _chats = widget.chats;
-  }
+  late String _selectedChatId = widget.selectedChatId;
+  late List<Chat> _chats = widget.chats;
 
   void _onChatSelected(Chat chat) {
     setState(() => _selectedChatId = chat.id);
@@ -120,12 +113,10 @@ class _ChatsArchiveState extends State<ChatsArchive> {
 
   @override
   Widget build(BuildContext context) {
-    final hasChats = _chats.isNotEmpty;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Chats Archive')),
       body:
-          !hasChats
+          _chats.isEmpty
               ? const Center(child: Text('No chats available'))
               : ChatListView(
                 key: const ValueKey('chat-list'),

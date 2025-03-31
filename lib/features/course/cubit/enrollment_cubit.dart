@@ -1,4 +1,3 @@
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../repositories/enrollment_repository.dart';
 import 'enrollment_state.dart';
@@ -33,9 +32,7 @@ class EnrollmentCubit extends Cubit<EnrollmentState> {
     try {
       emit(EnrollmentLoading());
       final enrollments =
-          await _enrollmentRepository
-              .watchEnrollmentsForCourse(courseId)
-              .first; 
+          await _enrollmentRepository.watchEnrollmentsForCourse(courseId).first;
       emit(EnrollmentsLoaded(enrollments));
     } on AppException catch (e) {
       emit(EnrollmentError(e.message));
@@ -48,7 +45,7 @@ class EnrollmentCubit extends Cubit<EnrollmentState> {
       final enrollments =
           await _enrollmentRepository
               .watchEnrollmentsForStudent(studentId)
-              .first; 
+              .first;
       emit(EnrollmentsLoaded(enrollments));
     } on AppException catch (e) {
       emit(EnrollmentError(e.message));

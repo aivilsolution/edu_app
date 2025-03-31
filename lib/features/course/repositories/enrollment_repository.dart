@@ -1,4 +1,3 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/enrollment.dart';
 import '../utils/exceptions.dart';
@@ -34,14 +33,12 @@ class FirebaseEnrollmentRepository implements EnrollmentRepository {
           .doc(studentId);
 
       await _firestore.runTransaction((transaction) async {
-        
         final courseDoc = await transaction.get(_coursesRef.doc(courseId));
         final studentDoc = await transaction.get(_studentsRef.doc(studentId));
 
         if (!courseDoc.exists) throw NotFoundException('Course', courseId);
         if (!studentDoc.exists) throw NotFoundException('Student', studentId);
 
-        
         transaction.set(enrollmentRef, {
           'enrolledAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));

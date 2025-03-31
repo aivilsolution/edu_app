@@ -10,15 +10,15 @@ class AnalyticsWidget extends StatefulWidget {
 
 class _AnalyticsWidgetState extends State<AnalyticsWidget> {
   final List<FlSpot> monthlyProgress = [
-    const FlSpot(0, 65), // January
-    const FlSpot(1, 75), // February
-    const FlSpot(2, 82), // March
-    const FlSpot(3, 78), // April
-    const FlSpot(4, 85), // May
-    const FlSpot(5, 90), // June
-    const FlSpot(6, 93), // July
-    const FlSpot(7, 89), // August
-    const FlSpot(8, 92), // September
+    const FlSpot(0, 65),
+    const FlSpot(1, 75),
+    const FlSpot(2, 82),
+    const FlSpot(3, 78),
+    const FlSpot(4, 85),
+    const FlSpot(5, 90),
+    const FlSpot(6, 93),
+    const FlSpot(7, 89),
+    const FlSpot(8, 92),
   ];
 
   final List<FlSpot> monthlyProgressWithError = [
@@ -29,11 +29,7 @@ class _AnalyticsWidgetState extends State<AnalyticsWidget> {
     const FlSpot(4, 85),
     const FlSpot(5, 90),
     const FlSpot(6, 93),
-    FlSpot(
-      7,
-      89,
-      yError: FlErrorRange(lowerBy: 3, upperBy: 3),
-    ), // August with error
+    FlSpot(7, 89, yError: FlErrorRange(lowerBy: 3, upperBy: 3)),
     const FlSpot(8, 92),
   ];
 
@@ -300,7 +296,10 @@ class _AnalyticsWidgetState extends State<AnalyticsWidget> {
                   color: Colors.grey.withValues(alpha: 0.2),
                   width: 1,
                 ),
-                left: BorderSide(color: Colors.grey.withValues(alpha: 0.2), width: 1),
+                left: BorderSide(
+                  color: Colors.grey.withValues(alpha: 0.2),
+                  width: 1,
+                ),
               ),
             ),
             lineTouchData: LineTouchData(
@@ -393,7 +392,9 @@ class _AnalyticsWidgetState extends State<AnalyticsWidget> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
@@ -481,7 +482,6 @@ class _AnalyticsWidgetState extends State<AnalyticsWidget> {
   }
 }
 
-// Custom painter for dashed line in legend
 class DashedLinePainter extends CustomPainter {
   final Color color;
 

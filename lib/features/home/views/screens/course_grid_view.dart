@@ -1,12 +1,11 @@
 import 'package:edu_app/shared/widgets/custom_app_bar.dart';
-
-import '../../../course/models/course.dart';
 import '/features/course/views/screens/course_page.dart';
 import '/shared/widgets/course_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '/features/course/cubit/course_cubit.dart';
 import '/features/course/cubit/course_state.dart';
+import '../../../course/models/course.dart';
 
 class CoursesGridView extends StatefulWidget {
   final int crossAxisCount;

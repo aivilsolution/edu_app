@@ -120,9 +120,10 @@ class MediaCubit extends Cubit<MediaState> {
 
     try {
       if (debounce) {
-        _debounceTimer = Timer(debounceTime ?? _debounceDefault, () async {
-          await _repository.updateMedia(media.copyWith(content: content));
-        });
+        _debounceTimer = Timer(
+          debounceTime ?? _debounceDefault,
+          () => _repository.updateMedia(media.copyWith(content: content)),
+        );
       } else {
         await _repository.updateMedia(media.copyWith(content: content));
       }
@@ -230,12 +231,7 @@ class MediaCubit extends Cubit<MediaState> {
     LlmProvider llmProvider, {
     int? slideCount,
   }) async {
-    final result = await _generateMediaJson(
-      prompt,
-      llmProvider,
-      slideCount: slideCount,
-    );
-    return result;
+    return _generateMediaJson(prompt, llmProvider, slideCount: slideCount);
   }
 
   Future<String> _generateMediaJson(
@@ -292,7 +288,7 @@ class MediaCubit extends Cubit<MediaState> {
   }
 
   String _buildSystemPrompt(String prompt) {
-    final systemPrompt = '''
+    return '''
 You are a professional slide presentation generator that creates engaging, visually-oriented content. Create a JSON formatted output for a presentation on the topic: "$prompt".
 
 Requirements:
@@ -332,7 +328,6 @@ Additional Guidelines:
 - Tailor content to the expertise level of the intended audience.
 - Your response must be valid, parseable JSON with no additional commentary.
 ''';
-    return systemPrompt;
   }
 
   String _validateAndFixJson(String jsonString, int expectedSlideCount) {
@@ -343,10 +338,7 @@ Additional Guidelines:
       if (slides.length != expectedSlideCount) {
         if (slides.length > expectedSlideCount) {
           jsonData['slides'] = slides.sublist(0, expectedSlideCount);
-          final fixedJson = jsonEncode(jsonData);
-          return fixedJson;
-        } else {
-          return jsonString;
+          return jsonEncode(jsonData);
         }
       }
       return jsonString;
@@ -364,7 +356,7 @@ Additional Guidelines:
   List<Media> _getCurrentMedia() {
     return state is MediaLoadedState
         ? (state as MediaLoadedState).allMedia
-        : <Media>[];
+        : const <Media>[];
   }
 
   void _handleError(
@@ -389,12 +381,11 @@ Additional Guidelines:
       emit(const MediaErrorState('LLM Provider not available from ChatCubit'));
       return null;
     }
-    final provider = VertexProvider(
+    return VertexProvider(
       model: FirebaseVertexAI.instance.generativeModel(
         model: 'gemini-2.0-flash-lite',
       ),
     );
-    return provider;
   }
 
   @override

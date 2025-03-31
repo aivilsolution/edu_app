@@ -28,7 +28,7 @@ class NotificationsPage extends StatelessWidget {
             const SizedBox(height: _spacing),
             Expanded(
               child: ListView.separated(
-                itemCount: 10,
+                itemCount: 6,
                 separatorBuilder:
                     (_, __) => const SizedBox(height: _cardSpacing),
                 itemBuilder:
@@ -60,7 +60,7 @@ class _NotificationTabs extends StatefulWidget {
 
 class _NotificationTabsState extends State<_NotificationTabs> {
   int _selectedIndex = 0;
-  static const List<String> _tabs = ['All', 'Unread'];
+  static const _tabs = <String>['All', 'Unread'];
 
   @override
   Widget build(BuildContext context) {

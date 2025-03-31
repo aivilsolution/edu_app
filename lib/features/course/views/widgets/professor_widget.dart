@@ -1,4 +1,3 @@
-// Professor widget - features/course/widgets/professor_widget.dart
 import 'package:edu_app/features/course/cubit/professor_cubit.dart';
 import 'package:edu_app/features/course/cubit/professor_state.dart';
 import 'package:edu_app/features/course/models/professor.dart';
@@ -7,29 +6,16 @@ import 'package:edu_app/shared/widgets/loading_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ProfessorWidget
-    extends
-        StatefulWidget {
+class ProfessorWidget extends StatefulWidget {
   final String professorId;
 
-  const ProfessorWidget({
-    super.key,
-    required this.professorId,
-  });
+  const ProfessorWidget({super.key, required this.professorId});
 
   @override
-  State<
-    ProfessorWidget
-  >
-  createState() =>
-      _ProfessorWidgetState();
+  State<ProfessorWidget> createState() => _ProfessorWidgetState();
 }
 
-class _ProfessorWidgetState
-    extends
-        State<
-          ProfessorWidget
-        > {
+class _ProfessorWidgetState extends State<ProfessorWidget> {
   @override
   void initState() {
     super.initState();
@@ -37,91 +23,44 @@ class _ProfessorWidgetState
   }
 
   @override
-  void didUpdateWidget(
-    ProfessorWidget oldWidget,
-  ) {
-    super.didUpdateWidget(
-      oldWidget,
-    );
-    if (widget.professorId !=
-        oldWidget.professorId) {
+  void didUpdateWidget(ProfessorWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.professorId != oldWidget.professorId) {
       _fetchProfessor();
     }
   }
 
   void _fetchProfessor() {
-    WidgetsBinding.instance.addPostFrameCallback(
-      (
-        _,
-      ) {
-        final professorCubit =
-            context
-                .read<
-                  ProfessorCubit
-                >();
-        final state =
-            professorCubit.state;
+    final professorCubit = context.read<ProfessorCubit>();
+    final state = professorCubit.state;
 
-        final isProfessorLoaded =
-            state
-                is ProfessorDetailLoaded &&
-            state.professor.id ==
-                widget.professorId;
+    final isProfessorLoaded =
+        state is ProfessorDetailLoaded &&
+        state.professor.id == widget.professorId;
 
-        if (widget.professorId.isNotEmpty &&
-            !isProfessorLoaded) {
-          professorCubit.fetchProfessorById(
-            widget.professorId,
-          );
-        }
-      },
-    );
+    if (widget.professorId.isNotEmpty && !isProfessorLoaded) {
+      professorCubit.fetchProfessorById(widget.professorId);
+    }
   }
 
-  void _retryFetch() => context
-      .read<
-        ProfessorCubit
-      >()
-      .fetchProfessorById(
-        widget.professorId,
-      );
+  void _retryFetch() =>
+      context.read<ProfessorCubit>().fetchProfessorById(widget.professorId);
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    return BlocSelector<
-      ProfessorCubit,
-      ProfessorState,
-      ProfessorState
-    >(
-      selector:
-          (
-            state,
-          ) =>
-              state,
-      builder: (
-        context,
-        state,
-      ) {
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProfessorCubit, ProfessorState>(
+      builder: (context, state) {
         return switch (state) {
           ProfessorLoading() => const LoadingView(
-            message:
-                "Loading Professor...",
+            message: "Loading Professor...",
           ),
           ProfessorError() => ErrorView(
-            message:
-                state.message,
-            onRetry:
-                _retryFetch,
+            message: state.message,
+            onRetry: _retryFetch,
           ),
           ProfessorDetailLoaded()
-              when state.professor.id ==
-                  widget.professorId =>
-            _ProfessorCard(
-              professor:
-                  state.professor,
-            ),
+              when state.professor.id == widget.professorId =>
+            _ProfessorCard(professor: state.professor),
           _ => const SizedBox.shrink(),
         };
       },
@@ -129,73 +68,36 @@ class _ProfessorWidgetState
   }
 }
 
-class _ProfessorCard
-    extends
-        StatelessWidget {
+class _ProfessorCard extends StatelessWidget {
   final Professor professor;
 
-  const _ProfessorCard({
-    required this.professor,
-  });
+  const _ProfessorCard({required this.professor});
 
-  void _navigateToProfessorDetail(
-    BuildContext context,
-  ) {}
+  void _navigateToProfessorDetail(BuildContext context) {}
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    final theme = Theme.of(
-      context,
-    );
-    final colorScheme =
-        theme.colorScheme;
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return InkWell(
-      onTap:
-          () => _navigateToProfessorDetail(
-            context,
-          ),
-      borderRadius: BorderRadius.circular(
-        16,
-      ),
-      splashColor: colorScheme.primary.withValues(
-        alpha:
-            .1,
-      ),
+      onTap: () => _navigateToProfessorDetail(context),
+      borderRadius: BorderRadius.circular(16),
+      splashColor: colorScheme.primary.withValues(alpha: .1),
       child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(
-            16,
-          ),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: const EdgeInsets.all(
-            16,
-          ),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              _ProfileIcon(
-                colorScheme:
-                    colorScheme,
-              ),
-              const SizedBox(
-                width:
-                    16,
-              ),
+              _ProfileIcon(colorScheme: colorScheme),
+              const SizedBox(width: 16),
               _ProfessorInfo(
-                professor:
-                    professor,
-                theme:
-                    theme,
-                colorScheme:
-                    colorScheme,
+                professor: professor,
+                theme: theme,
+                colorScheme: colorScheme,
               ),
-              const SizedBox(
-                width:
-                    16,
-              ),
+              const SizedBox(width: 16),
               _MessageButton(),
             ],
           ),
@@ -205,44 +107,30 @@ class _ProfessorCard
   }
 }
 
-class _ProfileIcon
-    extends
-        StatelessWidget {
+class _ProfileIcon extends StatelessWidget {
   final ColorScheme colorScheme;
 
-  const _ProfileIcon({
-    required this.colorScheme,
-  });
+  const _ProfileIcon({required this.colorScheme});
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return Container(
-      width:
-          56,
-      height:
-          56,
+      width: 56,
+      height: 56,
       decoration: BoxDecoration(
-        color:
-            colorScheme.primaryContainer,
-        shape:
-            BoxShape.circle,
+        color: colorScheme.primaryContainer,
+        shape: BoxShape.circle,
       ),
       child: Icon(
         Icons.person_outline,
-        size:
-            32,
-        color:
-            colorScheme.onPrimaryContainer,
+        size: 32,
+        color: colorScheme.onPrimaryContainer,
       ),
     );
   }
 }
 
-class _ProfessorInfo
-    extends
-        StatelessWidget {
+class _ProfessorInfo extends StatelessWidget {
   final Professor professor;
   final ThemeData theme;
   final ColorScheme colorScheme;
@@ -254,30 +142,22 @@ class _ProfessorInfo
   });
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
+  Widget build(BuildContext context) {
     return Expanded(
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             professor.name,
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight:
-                  FontWeight.w600,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(
-            height:
-                4,
-          ),
+          const SizedBox(height: 4),
           Text(
             professor.department,
             style: theme.textTheme.bodySmall?.copyWith(
-              color:
-                  colorScheme.onSurfaceVariant,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -286,32 +166,17 @@ class _ProfessorInfo
   }
 }
 
-class _MessageButton
-    extends
-        StatelessWidget {
+class _MessageButton extends StatelessWidget {
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    final theme = Theme.of(
-      context,
-    );
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
 
     return Tooltip(
-      message:
-          "Message Professor",
+      message: "Message Professor",
       child: IconButton(
-        icon: const Icon(
-          Icons.chat_bubble_outline,
-        ),
-        color:
-            theme.colorScheme.primary,
-        onPressed:
-            () => debugPrint(
-              'Message professor',
-            ),
-        splashRadius:
-            24,
+        icon: const Icon(Icons.chat_bubble_outline),
+        color: theme.colorScheme.primary,
+        onPressed: () {},
       ),
     );
   }

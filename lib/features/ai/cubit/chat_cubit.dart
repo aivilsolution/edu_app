@@ -335,7 +335,7 @@ class ChatCubit extends Cubit<ChatState> {
         }
       }
     } catch (e) {
-      // Handle title generation error if needed
+      rethrow;
     }
   }
 

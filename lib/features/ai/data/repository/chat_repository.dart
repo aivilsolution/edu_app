@@ -9,7 +9,7 @@ import '../models/chat.dart';
 
 class ChatRepository extends ChangeNotifier {
   final FirebaseFirestore _firestore;
-  final AppUser _user;
+  final AppUser? _user;
   final List<Chat> _chats;
 
   static const newChatTitle = 'Untitled';
@@ -17,7 +17,7 @@ class ChatRepository extends ChangeNotifier {
 
   ChatRepository._({
     required FirebaseFirestore firestore,
-    required AppUser user,
+    required AppUser? user,
     required List<Chat> chats,
   }) : _firestore = firestore,
        _user = user,
@@ -25,7 +25,7 @@ class ChatRepository extends ChangeNotifier {
 
   List<Chat> get chats => List.unmodifiable(_chats);
   CollectionReference get _chatsCollection =>
-      _firestore.collection('$_chatsCollectionPrefix/${_user.id}/chats');
+      _firestore.collection('$_chatsCollectionPrefix/${_user!.uid}/chats');
 
   CollectionReference historyCollection(Chat chat) =>
       _chatsCollection.doc(chat.id).collection('history');
@@ -43,7 +43,7 @@ class ChatRepository extends ChangeNotifier {
       return;
     }
 
-    if (newUser.id != _currentUser?.id) {
+    if (newUser.uid != _currentUser?.uid) {
       _currentUser = newUser;
       _currentUserRepository = null;
     }
@@ -61,7 +61,7 @@ class ChatRepository extends ChangeNotifier {
   static Future<ChatRepository> _createRepositoryForCurrentUser() async {
     final firestore = FirebaseFirestore.instance;
     final collection = firestore.collection(
-      '$_chatsCollectionPrefix/${_currentUser!.id}/chats',
+      '$_chatsCollectionPrefix/${_currentUser!.uid}/chats',
     );
 
     final chats = await _loadChats(collection);

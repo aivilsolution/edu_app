@@ -1,5 +1,3 @@
-
-
 import 'package:edu_app/features/communication/models/user.dart';
 import 'package:flutter/material.dart';
 
