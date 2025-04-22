@@ -56,9 +56,11 @@ class _CarouselWidgetState extends State<CarouselWidget> {
     const double dotSize = 6.0;
 
     return Column(
+      mainAxisSize:
+          MainAxisSize.min, 
       children: [
-        SizedBox(
-          height: widget.height,
+        Expanded(
+          
           child: CarouselView(
             controller: _controller,
             itemExtent: itemWidth,
@@ -70,7 +72,7 @@ class _CarouselWidgetState extends State<CarouselWidget> {
             children: widget.items,
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10), 
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(

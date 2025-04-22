@@ -21,7 +21,7 @@ class MediaCubit extends Cubit<MediaState> {
   Timer? _debounceTimer;
 
   static const _debounceDefault = Duration(milliseconds: 500);
-  static const _defaultSlideCount = 5;
+  static const _defaultSlideCount = 7;
   static const _minSlideCount = 3;
   static const _maxSlideCount = 10;
 
@@ -321,7 +321,7 @@ The JSON output must follow this schema:
 }
 
 Additional Guidelines:
-- Produce between 3 to 10 slides, with a default of 5 slides if not specified.
+- Produce between 3 to 10 slides, with a default of 7 slides if not specified.
 - Use active voice, strong verbs, and include specific examples or statistics when relevant.
 - Vary slide types to maintain audience engagement.
 - Ensure a logical flow between slides with smooth transitions.
@@ -383,7 +383,7 @@ Additional Guidelines:
     }
     return VertexProvider(
       model: FirebaseVertexAI.instance.generativeModel(
-        model: 'gemini-2.0-flash-lite',
+        model: 'gemini-2.0-flash',
       ),
     );
   }

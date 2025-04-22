@@ -46,10 +46,10 @@ class ChatCubit extends Cubit<ChatState> {
     final provider = VertexProvider(
       history: history ?? [],
       model: FirebaseVertexAI.instance.generativeModel(
-        model: 'gemini-2.0-flash-lite',
+        model: 'gemini-2.0-flash',
         systemInstruction: Content.system('''
-       Only When a user's message includes "@media", reply with a message such as:
-       "Your explanation is being prepared. Please check your media shortly."
+          When a user's message contains the tag "@media", respond with:
+          "Your explanation is being prepared. Please check your media shortly."
      '''),
       ),
     );

@@ -2,40 +2,55 @@ name: edu_app
 description: "Educational app"
 publish_to: 'none' 
 
-version: 1.0.0+1
+version: 1.0.0
 
 environment:
-  sdk: ^3.8.0-171.0.dev
-
+  sdk: ^3.7.0-209.1.beta
 
 dependencies:
   flutter:
     sdk: flutter
 
-  flutter_bloc: ^9.0.0
-  equatable: ^2.0.7
-  dartx: ^1.2.0
-  intl: ^0.20.2
-  uuid: ^4.5.1
-  go_router: ^14.8.0
-  google_fonts: ^6.2.1
-  url_launcher: ^6.3.1
-  video_player: ^2.9.5
-  flutter_dotenv: ^5.2.1
-  flutter_markdown: ^0.7.6+2
-  shared_preferences: ^2.5.3
+dependencies:
 
-  device_preview_plus: ^2.3.3
-  table_calendar: ^3.1.3
-  flutter_deck: ^0.18.0
-  fl_chart: ^0.70.2
-  flutter_ai_toolkit: ^0.6.8
+  # UI & Design
+  flutter_svg:
+  flutter_markdown:
+  google_fonts:
+  flutter_deck:
+  table_calendar:
+  fl_chart:
 
-  firebase_core: ^3.12.1
-  firebase_auth: ^5.5.1
-  cloud_firestore: ^5.6.5
-  firebase_vertexai: ^1.4.0
-  google_sign_in: ^6.3.0
+  # Firebase & Backend
+  firebase_auth:
+  firebase_core:
+  firebase_vertexai:
+  cloud_firestore:
+  livekit_client:
+  flutter_background:
+
+  # State Management & Logic
+  flutter_bloc:
+  provider:
+  equatable:
+
+  # Networking & Connectivity
+  connectivity_plus:
+  permission_handler:
+  url_launcher:
+  dartx:
+
+  # Utilities
+  collection:
+  device_preview_plus:
+  flutter_ai_toolkit:
+  google_sign_in:
+  logging:
+  shared_preferences:
+  uuid:
+  flutter_survey:
+  go_router:
+  intl:
 
 
 

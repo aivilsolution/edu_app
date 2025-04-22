@@ -11,6 +11,10 @@ class AppVideoPlayer extends StatefulWidget {
   final bool looping;
   final VoidCallback? onVideoEnd;
   final Function(String)? onError;
+  final bool isFullScreen;
+  final Duration initialPosition;
+  final Function(Duration)? onVideoPositionChanged;
+  final Function(bool)? onPlayStateChanged;
 
   const AppVideoPlayer({
     super.key,
@@ -22,18 +26,23 @@ class AppVideoPlayer extends StatefulWidget {
     this.looping = false,
     this.onVideoEnd,
     this.onError,
+    this.isFullScreen = false,
+    this.initialPosition = Duration.zero,
+    this.onVideoPositionChanged,
+    this.onPlayStateChanged,
   });
 
   @override
-  State createState() => _AppVideoPlayerState();
+  State createState() => AppVideoPlayerState();
 }
 
-class _AppVideoPlayerState extends State<AppVideoPlayer> {
+class AppVideoPlayerState extends State<AppVideoPlayer> {
   late VideoPlayerController _controller;
 
   Timer? _bufferingTimer;
   Timer? _timeoutTimer;
   Timer? _controlsTimer;
+  Timer? _positionUpdateTimer;
 
   bool _isInitializing = true;
   bool _hasError = false;
@@ -42,6 +51,8 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
   bool _showReplayButton = false;
   bool _isSeeking = false;
   bool _isHovering = false;
+  bool _wasPlaying = false;
+  bool _userInteracting = false;
 
   double _seekProgress = 0.0;
   Duration _currentPosition = Duration.zero;
@@ -50,22 +61,26 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
 
   String _errorMessage = '';
 
-  static const Duration _controlsDisplayDuration = Duration(seconds: 1);
-  static const Duration _bufferingTimeoutDuration = Duration(seconds: 20);
+  static const Duration _controlsDisplayDuration = Duration(seconds: 3);
+  static const Duration _bufferingTimeoutDuration = Duration(seconds: 10);
   static const Duration _videoEndThreshold = Duration(milliseconds: 300);
+  static const Duration _positionUpdateInterval = Duration(milliseconds: 500);
 
   @override
   void initState() {
     super.initState();
+    _wasPlaying = widget.autoPlay;
     _initializeVideoPlayer();
   }
 
   @override
   void didUpdateWidget(covariant AppVideoPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (oldWidget.videoUrl != widget.videoUrl) {
       _disposeResources();
       _initializeVideoPlayer();
+      return;
     }
 
     if (oldWidget.looping != widget.looping &&
@@ -83,15 +98,22 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
 
       _controller.addListener(_videoListener);
       _startTimeoutTimer();
+
       await _controller.initialize();
 
       if (!mounted) return;
 
+      if (widget.initialPosition != Duration.zero) {
+        await _controller.seekTo(widget.initialPosition);
+      }
+
       _controller.setLooping(widget.looping);
+      _startPositionUpdateTimer();
 
       setState(() {
         _isInitializing = false;
         _totalDuration = _controller.value.duration;
+        _currentPosition = widget.initialPosition;
         _showReplayButton = false;
       });
 
@@ -116,11 +138,6 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
       return;
     }
 
-    final position = _controller.value.position;
-    if (position != _currentPosition) {
-      setState(() => _currentPosition = position);
-    }
-
     final bufferedPosition = _getBufferedPosition();
     if (bufferedPosition != _bufferedPosition) {
       setState(() => _bufferedPosition = bufferedPosition);
@@ -137,8 +154,14 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
       }
     }
 
-    if (!_controller.value.isPlaying && _controller.value.isInitialized) {
-      final isFinished = _isVideoFinished(position);
+    final isPlaying = _controller.value.isPlaying;
+    if (_wasPlaying != isPlaying) {
+      _wasPlaying = isPlaying;
+      widget.onPlayStateChanged?.call(isPlaying);
+    }
+
+    if (!isPlaying && _controller.value.isInitialized) {
+      final isFinished = _isVideoFinished(_controller.value.position);
       if (isFinished != _showReplayButton) {
         setState(() {
           _showReplayButton = isFinished;
@@ -147,9 +170,22 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
           }
         });
       }
-    } else if (_controller.value.isPlaying && _showReplayButton) {
+    } else if (isPlaying && _showReplayButton) {
       setState(() => _showReplayButton = false);
     }
+  }
+
+  void _startPositionUpdateTimer() {
+    _positionUpdateTimer?.cancel();
+    _positionUpdateTimer = Timer.periodic(_positionUpdateInterval, (_) {
+      if (!mounted || !_controller.value.isInitialized || _isSeeking) return;
+
+      final newPosition = _controller.value.position;
+      if (newPosition != _currentPosition) {
+        setState(() => _currentPosition = newPosition);
+        widget.onVideoPositionChanged?.call(newPosition);
+      }
+    });
   }
 
   bool _isVideoFinished(Duration position) {
@@ -199,6 +235,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
   }
 
   void _togglePlayPause() {
+    _userInteracting = true;
     if (_controller.value.isPlaying) {
       _controller.pause();
       setState(() => _showControls = true);
@@ -207,50 +244,71 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
       _controller.play();
       _showControlsTemporarily();
     }
+    _resetUserInteraction();
   }
 
   void _replayVideo() {
+    _userInteracting = true;
     setState(() => _showReplayButton = false);
     _controller.seekTo(Duration.zero);
     _controller.play();
     _showControlsTemporarily();
+    _resetUserInteraction();
   }
 
   void _showControlsTemporarily() {
     if (!widget.showControls) return;
+
     setState(() => _showControls = true);
     _controlsTimer?.cancel();
     _controlsTimer = Timer(_controlsDisplayDuration, () {
-      if (mounted && _controller.value.isPlaying && !_isHovering) {
+      if (mounted && _controller.value.isPlaying && !_userInteracting) {
         setState(() => _showControls = false);
       }
     });
   }
 
+  void _resetUserInteraction() {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _userInteracting = false;
+    });
+  }
+
   void _handleHoverChanged(bool isHovering) {
     if (!widget.showControls) return;
+
     setState(() => _isHovering = isHovering);
 
     if (isHovering) {
-      _controlsTimer?.cancel();
       if (!_showControls && _controller.value.isInitialized) {
+        _userInteracting = true;
         setState(() => _showControls = true);
+        _resetUserInteraction();
       }
-    } else if (_controller.value.isPlaying) {
-      _showControlsTemporarily();
+
+      _controlsTimer?.cancel();
+      _controlsTimer = Timer(_controlsDisplayDuration, () {
+        if (mounted && _controller.value.isPlaying && !_userInteracting) {
+          setState(() => _showControls = false);
+        }
+      });
     }
   }
 
   void _handleSeekStart(DragStartDetails details) {
+    _userInteracting = true;
     _controlsTimer?.cancel();
     setState(() => _isSeeking = true);
   }
 
   void _handleSeekUpdate(DragUpdateDetails details) {
+    _userInteracting = true;
     final RenderBox box = context.findRenderObject() as RenderBox;
     final Offset position = box.globalToLocal(details.globalPosition);
-    final double width = box.size.width;
-    final double relativePosition = (position.dx / width).clamp(0.0, 1.0);
+    final double relativePosition = (position.dx / box.size.width).clamp(
+      0.0,
+      1.0,
+    );
     setState(() => _seekProgress = relativePosition);
   }
 
@@ -266,12 +324,26 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
 
     setState(() => _isSeeking = false);
     _showControlsTemporarily();
+    _resetUserInteraction();
+  }
+
+  void _handleTap() {
+    _userInteracting = true;
+    if (_showReplayButton) {
+      _replayVideo();
+    } else if (!_showControls) {
+      _showControlsTemporarily();
+    } else {
+      _togglePlayPause();
+    }
+    _resetUserInteraction();
   }
 
   void _disposeTimers() {
     _timeoutTimer?.cancel();
     _bufferingTimer?.cancel();
     _controlsTimer?.cancel();
+    _positionUpdateTimer?.cancel();
   }
 
   void _disposeResources() {
@@ -286,16 +358,111 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
     super.dispose();
   }
 
+  Future<void> _toggleFullScreen() async {
+    _userInteracting = true;
+    if (widget.isFullScreen) {
+      final currentPosition = _controller.value.position.inMilliseconds;
+      final isPlaying = _controller.value.isPlaying;
+
+      if (isPlaying) {
+        await _controller.pause();
+      }
+
+      Navigator.of(context).pop(
+        VideoReturnData(
+          position: currentPosition,
+          isPlaying: isPlaying,
+          looping: widget.looping,
+        ),
+      );
+    } else {
+      final wasPlaying = _controller.value.isPlaying;
+      if (wasPlaying) {
+        await _controller.pause();
+      }
+
+      final currentPosition = _controller.value.position.inMilliseconds;
+
+      try {
+        final result = await Navigator.of(context).push<VideoReturnData>(
+          MaterialPageRoute(
+            builder:
+                (context) => VideoScreen(
+                  videoUrl: widget.videoUrl,
+                  position: currentPosition,
+                  isPlaying: wasPlaying,
+                  looping: widget.looping,
+                ),
+          ),
+        );
+
+        if (result != null && mounted) {
+          await _controller.seekTo(Duration(milliseconds: result.position));
+
+          if (result.isPlaying) {
+            await _controller.play();
+          } else {
+            await _controller.pause();
+          }
+        }
+      } catch (e) {
+        debugPrint('Error handling fullscreen navigation: $e');
+
+        if (wasPlaying && mounted) {
+          await _controller.play();
+        }
+      }
+    }
+    _resetUserInteraction();
+  }
+
   @override
   Widget build(BuildContext context) {
+    return widget.isFullScreen
+        ? _buildFullScreenLayout()
+        : _buildRegularLayout();
+  }
+
+  Widget _buildFullScreenLayout() {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: MouseRegion(
+        onEnter: (_) => _handleHoverChanged(true),
+        onExit: (_) => _handleHoverChanged(false),
+        onHover: (_) => _handleHoverChanged(true),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              _buildContent(),
+              if (_showControls)
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                    onPressed: _toggleFullScreen,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRegularLayout() {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final BoxConstraints effectiveConstraints =
-            widget.constraints ?? constraints;
+        final effectiveConstraints = widget.constraints ?? constraints;
 
         return MouseRegion(
           onEnter: (_) => _handleHoverChanged(true),
           onExit: (_) => _handleHoverChanged(false),
+          onHover: (_) => _handleHoverChanged(true),
           child: Container(
             constraints: effectiveConstraints,
             color: Colors.black,
@@ -304,19 +471,6 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
         );
       },
     );
-  }
-
-  void _handleTap() {
-    if (_showReplayButton) {
-      _replayVideo();
-      return;
-    }
-
-    if (!_showControls) {
-      _showControlsTemporarily();
-    } else if (_controller.value.isPlaying) {
-      setState(() => _showControls = false);
-    }
   }
 
   Widget _buildContent() {
@@ -520,6 +674,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
+
                     Container(
                       width: progressWidth,
                       decoration: BoxDecoration(
@@ -527,6 +682,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
+
                     if (_isSeeking || _showControls)
                       Positioned(
                         left: progressWidth - 6,
@@ -539,7 +695,7 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
+                                color: Colors.black.withOpacity(0.3),
                                 blurRadius: 3,
                                 offset: const Offset(0, 1),
                               ),
@@ -560,13 +716,10 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
   double _getProgressWidth(double maxWidth) {
     if (_totalDuration.inMilliseconds == 0) return 0;
 
-    if (_isSeeking) {
-      return _seekProgress * maxWidth;
-    } else {
-      return _currentPosition.inMilliseconds /
-          _totalDuration.inMilliseconds *
-          maxWidth;
-    }
+    return (_isSeeking
+            ? _seekProgress
+            : _currentPosition.inMilliseconds / _totalDuration.inMilliseconds) *
+        maxWidth;
   }
 
   double _getBufferedWidth(double maxWidth) {
@@ -593,33 +746,32 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
           style: const TextStyle(color: Colors.white, fontSize: 12),
         ),
         const Spacer(),
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         IconButton(
-          icon: const Icon(Icons.download_rounded, color: Colors.white),
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Download not implemented')),
-            );
-          },
-          padding: EdgeInsets.zero,
-          iconSize: 24,
-        ),
-        IconButton(
-          icon: const Icon(Icons.volume_up, color: Colors.white),
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Volume control not implemented')),
-            );
-          },
-          padding: EdgeInsets.zero,
-          iconSize: 24,
-        ),
-        IconButton(
-          icon: const Icon(Icons.fullscreen, color: Colors.white),
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Fullscreen not implemented')),
-            );
-          },
+          icon: Icon(
+            widget.isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
+            color: Colors.white,
+          ),
+          onPressed: _toggleFullScreen,
           padding: EdgeInsets.zero,
           iconSize: 24,
         ),
@@ -629,8 +781,93 @@ class _AppVideoPlayerState extends State<AppVideoPlayer> {
 
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
-    final String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return "$twoDigitMinutes:$twoDigitSeconds";
+    final String minutes = twoDigits(duration.inMinutes.remainder(60));
+    final String seconds = twoDigits(duration.inSeconds.remainder(60));
+    return "$minutes:$seconds";
+  }
+}
+
+class VideoReturnData {
+  final int position;
+  final bool isPlaying;
+  final bool looping;
+
+  VideoReturnData({
+    required this.position,
+    required this.isPlaying,
+    required this.looping,
+  });
+
+  factory VideoReturnData.fromJson(Map<dynamic, dynamic> json) {
+    return VideoReturnData(
+      position: json['position'] as int? ?? 0,
+      isPlaying: json['isPlaying'] as bool? ?? false,
+      looping: json['looping'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'position': position, 'isPlaying': isPlaying, 'looping': looping};
+  }
+}
+
+class VideoScreen extends StatelessWidget {
+  final String videoUrl;
+  final int position;
+  final bool isPlaying;
+  final bool looping;
+
+  const VideoScreen({
+    super.key,
+    required this.videoUrl,
+    this.position = 0,
+    this.isPlaying = true,
+    this.looping = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          final playerState =
+              context.findAncestorStateOfType<AppVideoPlayerState>();
+          if (playerState != null) {
+            final currentPosition =
+                playerState._controller.value.position.inMilliseconds;
+            final isPlaying = playerState._controller.value.isPlaying;
+
+            Navigator.of(context).pop(
+              VideoReturnData(
+                position: currentPosition,
+                isPlaying: isPlaying,
+                looping: looping,
+              ),
+            );
+          } else {
+            Navigator.of(context).pop(
+              VideoReturnData(
+                position: position,
+                isPlaying: isPlaying,
+                looping: looping,
+              ),
+            );
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: AppVideoPlayer(
+            videoUrl: videoUrl,
+            isFullScreen: true,
+            autoPlay: isPlaying,
+            looping: looping,
+            initialPosition: Duration(milliseconds: position),
+          ),
+        ),
+      ),
+    );
   }
 }

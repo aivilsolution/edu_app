@@ -8,8 +8,9 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 
 class MediaDeckView extends StatefulWidget {
   final Media media;
+  final bool needAppBar;
 
-  const MediaDeckView({super.key, required this.media});
+  const MediaDeckView({this.needAppBar = true, super.key, required this.media});
 
   @override
   State<MediaDeckView> createState() => _MediaDeckViewState();
@@ -88,7 +89,7 @@ class _MediaDeckViewState extends State<MediaDeckView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
+      appBar: widget.needAppBar ? _buildAppBar() : null,
       body: _buildBody(),
       bottomNavigationBar: _buildNavigationBar(),
     );

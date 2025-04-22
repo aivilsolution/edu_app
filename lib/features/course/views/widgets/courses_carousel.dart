@@ -1,19 +1,19 @@
 import 'package:edu_app/features/course/cubit/course_cubit.dart';
 import 'package:edu_app/features/course/cubit/course_state.dart';
 import 'package:edu_app/features/course/views/screens/course_page.dart';
+import 'package:edu_app/features/course/views/widgets/course_card.dart';
 import 'package:edu_app/shared/widgets/carousel_widget.dart';
-import 'package:edu_app/shared/widgets/course_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class CourseCarouselView extends StatefulWidget {
-  const CourseCarouselView({super.key});
+class CoursesCarousel extends StatefulWidget {
+  const CoursesCarousel({super.key});
 
   @override
-  State<CourseCarouselView> createState() => _CourseCarouselViewState();
+  State createState() => _CoursesCarouselState();
 }
 
-class _CourseCarouselViewState extends State<CourseCarouselView> {
+class _CoursesCarouselState extends State<CoursesCarousel> {
   @override
   void initState() {
     super.initState();
@@ -24,7 +24,7 @@ class _CourseCarouselViewState extends State<CourseCarouselView> {
     return CarouselWidget(
       items: List.generate(
         courses.length,
-        (index) => CourseCard(name: courses[index].name),
+        (index) => CourseCard(name: courses[index].name, index: index),
       ),
       onTap: (index) {
         Navigator.of(context).push(

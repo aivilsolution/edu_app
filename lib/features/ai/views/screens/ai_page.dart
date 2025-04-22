@@ -290,6 +290,11 @@ class _ChatView extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return LlmChatView(
       provider: state.provider,
+      suggestions: [
+        "@media Explain Dijkstra's algorithm",
+        "@media Explain Neural Networks",
+        "@media Explain Quadratic equations",
+      ],
       style: LlmChatViewStyle(
         backgroundColor: colorScheme.surface,
         chatInputStyle: ChatInputStyle(

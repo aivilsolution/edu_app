@@ -1,9 +1,8 @@
+import 'package:edu_app/features/course/views/widgets/courses_carousel.dart';
+import 'package:edu_app/features/course/views/widgets/courses_grid.dart';
 import 'package:flutter/material.dart';
-import '/features/home/views/screens/course_grid_view.dart';
 import '/features/home/views/screens/notification_page.dart';
 import '/features/home/views/screens/recommendation_section.dart';
-import '/features/home/views/widgets/course_carousel_view.dart';
-import '/shared/widgets/section_header.dart';
 import '/features/profile/views/screens/profile_page.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -17,7 +16,12 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Educational App'),
+        title: Text(
+          'Edu App',
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
@@ -34,12 +38,23 @@ class HomeScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
         children: [
-          SectionHeader(
-            title: 'My Courses',
-            onAction: () => _navigate(context, const CoursesGridView()),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'My Courses',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              IconButton(
+                icon: Icon(Icons.arrow_forward_rounded),
+                onPressed: () => _navigate(context, const CoursesGrid()),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
-          const SizedBox(height: 240, child: CourseCarouselView()),
+          const SizedBox(height: 200, child: CoursesCarousel()),
           const SizedBox(height: 32),
           Text(
             'Recommendations',

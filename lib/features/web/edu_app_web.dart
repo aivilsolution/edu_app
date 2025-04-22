@@ -1,5 +1,6 @@
 import 'package:device_preview_plus/device_preview_plus.dart';
-import 'package:edu_app/core/di/app_dependencies.dart';
+import 'package:edu_app/core/config/env_config.dart';
+import 'package:edu_app/core/firebase/firebase_options.dart';
 import 'package:edu_app/core/router/app_router.dart';
 import 'package:edu_app/core/theme/theme.dart';
 import 'package:edu_app/features/auth/auth.dart';
@@ -8,267 +9,503 @@ import 'package:edu_app/features/course/cubit/enrollment_cubit.dart';
 import 'package:edu_app/features/course/cubit/professor_cubit.dart';
 import 'package:edu_app/features/course/cubit/student_cubit.dart';
 import 'package:edu_app/shared/widgets/video_player.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:edu_app/features/course/repositories/course_repository.dart';
+import 'package:edu_app/features/course/repositories/enrollment_repository.dart';
+import 'package:edu_app/features/course/repositories/professor_repository.dart';
+import 'package:edu_app/features/course/repositories/student_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class AppBlocObserver extends BlocObserver {
+  @override
+  void onChange(BlocBase bloc, Change change) {
+    super.onChange(bloc, change);
+
+    if (kDebugMode) {
+      print('onChange(${bloc.runtimeType}, $change)');
+    }
+  }
+
+  @override
+  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+    if (kDebugMode) {
+      print('onError(${bloc.runtimeType}, $error, $stackTrace)');
+    }
+    super.onError(bloc, error, stackTrace);
+  }
+}
+
+extension AuthContextExtension on BuildContext {
+  AuthBloc get authBloc => read<AuthBloc>();
+  AuthState get authState => read<AuthBloc>().state;
+  bool get isAuthenticated => authState.status == AuthStatus.authenticated;
+  AppUser? get currentUser => authState.user;
+  String? get currentUserId => currentUser?.uid;
+  Future<void> signOut() async => authBloc.add(AuthSignOutRequested());
+}
+
+enum AppInitStep {
+  notStarted,
+  sharedPreferences,
+  authRepository,
+  authBloc,
+  courseRepository,
+  professorRepository,
+  studentRepository,
+  enrollmentRepository,
+  cubits,
+  completed,
+}
+
+class AppDependencies {
+  final SharedPreferences prefs;
+  final AuthRepository authRepository;
+  final AuthBloc authBloc;
+  final FirebaseCourseRepository courseRepository;
+  final CourseCubit courseCubit;
+  final FirebaseProfessorRepository professorRepository;
+  final ProfessorCubit professorCubit;
+  final FirebaseStudentRepository studentRepository;
+  final StudentCubit studentCubit;
+  final FirebaseEnrollmentRepository enrollmentRepository;
+  final EnrollmentCubit enrollmentCubit;
+
+  AppDependencies._({
+    required this.prefs,
+    required this.authRepository,
+    required this.authBloc,
+    required this.courseRepository,
+    required this.courseCubit,
+    required this.professorRepository,
+    required this.professorCubit,
+    required this.studentRepository,
+    required this.studentCubit,
+    required this.enrollmentRepository,
+    required this.enrollmentCubit,
+  });
+
+  static Future<AppDependencies> initialize({
+    void Function(AppInitStep, double)? onProgress,
+  }) async {
+    
+    onProgress?.call(AppInitStep.notStarted, 0.0);
+
+    
+    onProgress?.call(AppInitStep.sharedPreferences, 0.1);
+    final prefs = await SharedPreferences.getInstance();
+
+    
+    onProgress?.call(AppInitStep.authRepository, 0.2);
+    final authRepository = AuthRepository(prefs: prefs);
+
+    
+    onProgress?.call(AppInitStep.authBloc, 0.3);
+    final authBloc = AuthBloc(authRepository);
+
+    
+    authBloc.add(AuthStarted());
+
+    
+    onProgress?.call(AppInitStep.courseRepository, 0.4);
+    final repositoryFutures = await Future.wait([
+      Future(() => FirebaseCourseRepository()),
+      Future(() => FirebaseProfessorRepository()),
+      Future(() => FirebaseStudentRepository()),
+      Future(() => FirebaseEnrollmentRepository()),
+    ]);
+
+    final courseRepository = repositoryFutures[0] as FirebaseCourseRepository;
+    onProgress?.call(AppInitStep.professorRepository, 0.4);
+    final professorRepository =
+        repositoryFutures[1] as FirebaseProfessorRepository;
+    onProgress?.call(AppInitStep.studentRepository, 0.5);
+    final studentRepository = repositoryFutures[2] as FirebaseStudentRepository;
+    onProgress?.call(AppInitStep.enrollmentRepository, 0.6);
+    final enrollmentRepository =
+        repositoryFutures[3] as FirebaseEnrollmentRepository;
+
+    
+    onProgress?.call(AppInitStep.cubits, 0.8);
+    final courseCubit = CourseCubit(courseRepository);
+    final professorCubit = ProfessorCubit(professorRepository);
+    final studentCubit = StudentCubit(studentRepository);
+    final enrollmentCubit = EnrollmentCubit(enrollmentRepository);
+
+    
+    onProgress?.call(AppInitStep.completed, 1.0);
+    return AppDependencies._(
+      prefs: prefs,
+      authRepository: authRepository,
+      authBloc: authBloc,
+      courseRepository: courseRepository,
+      courseCubit: courseCubit,
+      professorRepository: professorRepository,
+      professorCubit: professorCubit,
+      studentRepository: studentRepository,
+      studentCubit: studentCubit,
+      enrollmentRepository: enrollmentRepository,
+      enrollmentCubit: enrollmentCubit,
+    );
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await EnvConfig.load();
+  if (!const bool.fromEnvironment('dart.vm.product')) {
+    Bloc.observer = AppBlocObserver();
+  }
+  runApp(const EduAppWeb());
+}
 
 class EduAppWeb extends StatefulWidget {
-  final AppDependencies dependencies;
-
-  const EduAppWeb({super.key, required this.dependencies});
+  const EduAppWeb({super.key});
 
   @override
   State<EduAppWeb> createState() => _EduAppWebState();
 }
 
 class _EduAppWebState extends State<EduAppWeb> {
-  bool _showLandingPage = true;
-  bool _isLoading = false;
-
-  static const _githubUrl = 'https://github.com/aivilsolution/edu_app.git';
-  static const _appLaunchDelay = Duration(milliseconds: 1200);
+  
+  static const _githubUrl = 'https:
   static const String _videoUrl =
-      'https://firebasestorage.googleapis.com/v0/b/edu-app-b4451.firebasestorage.app/o/video.mp4?alt=media&token=8695b5b6-0cee-4fc6-9276-7f316eef7ae6';
+      'https:
 
-  void _launchEduApp() {
-    if (_isLoading) return;
+  static const String _apkDownloadUrl =
+      'https:
 
-    setState(() => _isLoading = true);
-    Future.delayed(_appLaunchDelay, () {
-      if (mounted) {
-        setState(() {
-          _showLandingPage = false;
-          _isLoading = false;
-        });
-      }
+  
+  AppDependencies? _dependencies;
+  dynamic _initializationError;
+  bool _isLoadingOverlayVisible = false;
+  bool _userRequestedEntry = false;
+  bool _isFirebaseInitialized = false;
+
+  
+  AppInitStep _currentStep = AppInitStep.notStarted;
+  double _loadingProgress = 0.0;
+  String _loadingMessage = 'Preparing...';
+
+  
+  late final Future<FirebaseApp> _firebaseInitFuture = _initializeFirebase();
+
+  @override
+  void initState() {
+    super.initState();
+    
+  }
+
+  Future<FirebaseApp> _initializeFirebase() async {
+    try {
+      final app = await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      FirebaseAuth.instance.setLanguageCode('en');
+      if (mounted) setState(() => _isFirebaseInitialized = true);
+      return app;
+    } catch (e) {
+      print('Firebase initialization error: $e');
+      rethrow;
+    }
+  }
+
+  void _updateProgress(AppInitStep step, double progress) {
+    if (!mounted) return;
+
+    setState(() {
+      _currentStep = step;
+      _loadingProgress = progress;
+      _loadingMessage = _getMessageForStep(step);
     });
   }
 
-  Future<void> _launchGitHub() async {
+  String _getMessageForStep(AppInitStep step) {
+    switch (step) {
+      case AppInitStep.notStarted:
+        return 'Preparing to load...';
+      case AppInitStep.sharedPreferences:
+        return 'Loading preferences...';
+      case AppInitStep.authRepository:
+        return 'Setting up authentication...';
+      case AppInitStep.authBloc:
+        return 'Initializing authentication...';
+      case AppInitStep.courseRepository:
+        return 'Loading course data...';
+      case AppInitStep.professorRepository:
+        return 'Loading professor data...';
+      case AppInitStep.studentRepository:
+        return 'Loading student data...';
+      case AppInitStep.enrollmentRepository:
+        return 'Loading enrollment data...';
+      case AppInitStep.cubits:
+        return 'Setting up state management...';
+      case AppInitStep.completed:
+        return 'Almost ready!';
+    }
+  }
+
+  Future<void> _initializeAppDependencies() async {
+    if (_dependencies != null) return;
+
+    setState(() => _isLoadingOverlayVisible = true);
+
     try {
-      final uri = Uri.parse(_githubUrl);
+      if (!_isFirebaseInitialized) {
+        setState(() {
+          _loadingMessage = 'Initializing Firebase...';
+          _loadingProgress = 0.05;
+        });
+        await _firebaseInitFuture;
+      }
+
+      
+      final dependencies = await AppDependencies.initialize(
+        onProgress: _updateProgress,
+      );
+
+      if (mounted) {
+        setState(() {
+          _dependencies = dependencies;
+          _initializationError = null;
+          _isLoadingOverlayVisible = false;
+        });
+      }
+    } catch (e, stackTrace) {
+      print('Error initializing app dependencies: $e\n$stackTrace');
+      if (mounted) {
+        setState(() {
+          _initializationError = e;
+          _isLoadingOverlayVisible = false;
+        });
+      }
+    }
+  }
+
+  void _requestAppEntry() {
+    if (_isLoadingOverlayVisible || _initializationError != null) return;
+
+    setState(() => _userRequestedEntry = true);
+    _initializeAppDependencies();
+  }
+
+  Future<void> _launchUrl(String url, String errorMessage) async {
+    try {
+      final uri = Uri.parse(url);
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to open GitHub repository')),
-          );
-        }
+        if (mounted) _showErrorSnackBar(errorMessage);
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
-      }
+      if (mounted) _showErrorSnackBar('Error launching URL: ${e.toString()}');
+    }
+  }
+
+  Future<void> _launchGitHub() async =>
+      await _launchUrl(_githubUrl, 'Failed to open GitHub repository');
+
+  Future<void> _downloadApk() async =>
+      await _launchUrl(_apkDownloadUrl, 'Failed to download APK');
+  void _showErrorSnackBar(String message) {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger != null && mounted) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(message),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    } else {
+      print("Snackbar Error: $message (Context unavailable)");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return _showLandingPage
-        ? _LandingPage(
-          isLoading: _isLoading,
-          onLaunchApp: _launchEduApp,
-          onLaunchGitHub: _launchGitHub,
-          videoUrl: _videoUrl,
-        )
-        : _MainApp(dependencies: widget.dependencies);
-  }
-}
+    final bool canEnterApp = _dependencies != null && _userRequestedEntry;
 
-class _MainApp extends StatelessWidget {
-  final AppDependencies dependencies;
-
-  const _MainApp({required this.dependencies});
-
-  @override
-  Widget build(BuildContext context) {
-    return DevicePreview(
-      backgroundColor: AppTheme.darkTheme.colorScheme.surface,
-      isToolbarVisible: false,
-      builder:
-          (context) => MultiBlocProvider(
-            providers: _createBlocProviders(),
-            child: MaterialApp.router(
-              title: 'Edu App',
-              theme: AppTheme.darkTheme,
-              routerConfig: AppRouter.router,
-              debugShowCheckedModeBanner: false,
-              locale: DevicePreview.locale(context),
-              builder: DevicePreview.appBuilder,
-            ),
-          ),
-    );
-  }
-
-  List<BlocProvider> _createBlocProviders() => [
-    BlocProvider<AuthBloc>(create: (_) => dependencies.authBloc),
-    BlocProvider<CourseCubit>(create: (_) => dependencies.courseCubit),
-    BlocProvider<ProfessorCubit>(create: (_) => dependencies.professorCubit),
-    BlocProvider<StudentCubit>(create: (_) => dependencies.studentCubit),
-    BlocProvider<EnrollmentCubit>(create: (_) => dependencies.enrollmentCubit),
-  ];
-}
-
-class _LandingPage extends StatelessWidget {
-  final bool isLoading;
-  final VoidCallback onLaunchApp;
-  final VoidCallback onLaunchGitHub;
-  final String videoUrl;
-
-  const _LandingPage({
-    required this.isLoading,
-    required this.onLaunchApp,
-    required this.onLaunchGitHub,
-    required this.videoUrl,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'edu_app',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      home: Scaffold(
-        body: Stack(
-          children: [
-            SafeArea(
-              child: _LandingContent(
-                onLaunchApp: onLaunchApp,
-                onLaunchGitHub: onLaunchGitHub,
-                videoUrl: videoUrl,
+    if (canEnterApp) {
+      return _MainApp(dependencies: _dependencies!);
+    } else {
+      return MaterialApp(
+        title: 'Edu App',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.darkTheme,
+        shortcuts: const <ShortcutActivator, Intent>{},
+        home: Scaffold(
+          body: Stack(
+            children: [
+              SafeArea(
+                child: _LandingContent(
+                  onLaunchApp: _requestAppEntry,
+                  onLaunchGitHub: _launchGitHub,
+                  onDownloadApk: _downloadApk,
+                  videoUrl: _videoUrl,
+                  initializationError: _initializationError,
+                ),
               ),
-            ),
-            if (isLoading) const _LoadingOverlay(),
-          ],
+              if (_isLoadingOverlayVisible)
+                _LoadingOverlay(
+                  progress: _loadingProgress,
+                  message: _loadingMessage,
+                  step: _currentStep,
+                ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 }
 
 class _LandingContent extends StatelessWidget {
   final VoidCallback onLaunchApp;
   final VoidCallback onLaunchGitHub;
+  final VoidCallback onDownloadApk;
   final String videoUrl;
+  final dynamic initializationError;
 
   const _LandingContent({
     required this.onLaunchApp,
     required this.onLaunchGitHub,
+    required this.onDownloadApk,
     required this.videoUrl,
+    this.initializationError,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const _Header(),
-                const SizedBox(height: 40),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final isWideLayout = constraints.maxWidth > 768;
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const _Header(),
+              const SizedBox(height: 24),
 
-                    if (isWideLayout) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            flex: 6,
-                            child: _VideoPlayerContainer(videoUrl: videoUrl),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 32.0,
-                            ),
-                            child: Container(
-                              height: 240,
-                              width: 1,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.outline.withValues(alpha: 0.5),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 4,
-                            child: _ActionButtons(
-                              onLaunchApp: onLaunchApp,
-                              onLaunchGitHub: onLaunchGitHub,
-                            ),
-                          ),
-                        ],
-                      );
-                    } else {
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _VideoPlayerContainer(videoUrl: videoUrl),
-                          const SizedBox(height: 40),
-                          _ActionButtons(
-                            onLaunchApp: onLaunchApp,
-                            onLaunchGitHub: onLaunchGitHub,
-                            isVertical: true,
-                          ),
-                        ],
-                      );
-                    }
-                  },
+              if (initializationError != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0),
+                  child: _ErrorDisplay(error: initializationError),
                 ),
-              ],
-            ),
+
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth > 1000) {
+                    return _buildWideLayout(context);
+                  } else if (constraints.maxWidth > 650) {
+                    return _buildMediumLayout(context);
+                  } else {
+                    return _buildNarrowLayout(context);
+                  }
+                },
+              ),
+            ],
           ),
         ),
       ),
     );
   }
-}
 
-class _ActionButtons extends StatelessWidget {
-  final VoidCallback onLaunchApp;
-  final VoidCallback onLaunchGitHub;
-  final bool isVertical;
+  Widget _buildWideLayout(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(flex: 6, child: _LazyVideoPlayerContainer(videoUrl: videoUrl)),
+        const Spacer(flex: 1),
+        const _VerticalDivider(height: 300),
+        const Spacer(flex: 1),
+        _ActionButtons(
+          onEnterApp: onLaunchApp,
+          onLaunchGitHub: onLaunchGitHub,
+          onDownloadApk: onDownloadApk,
+          isEnterAppDisabled: initializationError != null,
+        ),
+      ],
+    );
+  }
 
-  const _ActionButtons({
-    required this.onLaunchApp,
-    required this.onLaunchGitHub,
-    this.isVertical = false,
-  });
+  Widget _buildMediumLayout(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(flex: 5, child: _LazyVideoPlayerContainer(videoUrl: videoUrl)),
+        const SizedBox(width: 30),
+        Expanded(
+          flex: 4,
+          child: _ActionButtons(
+            onEnterApp: onLaunchApp,
+            onLaunchGitHub: onLaunchGitHub,
+            onDownloadApk: onDownloadApk,
+            isEnterAppDisabled: initializationError != null,
+          ),
+        ),
+      ],
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    final children = [
-      _AppButton(onPressed: onLaunchApp),
-      SizedBox(height: 20, width: 16),
-      _GitHubButton(onPressed: onLaunchGitHub),
-    ];
-
+  Widget _buildNarrowLayout(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: children,
+      children: [
+        _LazyVideoPlayerContainer(videoUrl: videoUrl),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 40),
+          child: _HorizontalDivider(),
+        ),
+        _ActionButtons(
+          onEnterApp: onLaunchApp,
+          onLaunchGitHub: onLaunchGitHub,
+          onDownloadApk: onDownloadApk,
+          isEnterAppDisabled: initializationError != null,
+        ),
+      ],
     );
   }
 }
 
-class _VideoPlayerContainer extends StatelessWidget {
+
+class _LazyVideoPlayerContainer extends StatefulWidget {
   final String videoUrl;
 
-  const _VideoPlayerContainer({required this.videoUrl});
+  const _LazyVideoPlayerContainer({required this.videoUrl});
+
+  @override
+  State<_LazyVideoPlayerContainer> createState() =>
+      _LazyVideoPlayerContainerState();
+}
+
+class _LazyVideoPlayerContainerState extends State<_LazyVideoPlayerContainer> {
+  bool _userInteracted = false; 
+  final _visibilityKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    
+  }
+
+  void _loadVideo() {
+    if (!mounted) return;
+    setState(() => _userInteracted = true);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: _visibilityKey,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: Colors.black.withOpacity(0.25),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -277,57 +514,210 @@ class _VideoPlayerContainer extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: AspectRatio(
         aspectRatio: 16 / 9,
-        child: AppVideoPlayer(
-          videoUrl: videoUrl,
-          autoPlay: false,
-          showControls: true,
-          looping: false,
-          onError: (error) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text('Error: $error')));
-          },
-        ),
+        child:
+            _userInteracted
+                ? AppVideoPlayer(
+                  videoUrl: widget.videoUrl,
+                  autoPlay: true,
+                  showControls: true,
+                  looping: false,
+                  onError: (error) {
+                    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                      SnackBar(
+                        content: Text('Error playing video: $error'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                )
+                : GestureDetector(
+                  onTap: _loadVideo,
+                  child: Container(
+                    color: Theme.of(context).colorScheme.surface,
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.play_circle_outline,
+                            size: 60,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Click to load video',
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
       ),
     );
   }
 }
 
-class _AppButton extends StatelessWidget {
-  final VoidCallback onPressed;
+class _MainApp extends StatefulWidget {
+  final AppDependencies dependencies;
 
-  const _AppButton({required this.onPressed});
+  const _MainApp({required this.dependencies});
+
+  @override
+  State<_MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<_MainApp> {
+  late final List<BlocProvider> _blocProviders;
+
+  @override
+  void initState() {
+    super.initState();
+    _blocProviders = _createBlocProviders(widget.dependencies);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initializeRouter());
+  }
+
+  void _initializeRouter() {
+    if (!mounted) return;
+    try {
+      AppRouter.initializeRefreshListenable(context);
+    } catch (e) {
+      print("Error initializing router refresh listenable: $e");
+    }
+  }
+
+  List<BlocProvider> _createBlocProviders(AppDependencies dependencies) => [
+    BlocProvider<AuthBloc>.value(value: dependencies.authBloc),
+    BlocProvider<CourseCubit>.value(value: dependencies.courseCubit),
+    BlocProvider<ProfessorCubit>.value(value: dependencies.professorCubit),
+    BlocProvider<StudentCubit>.value(value: dependencies.studentCubit),
+    BlocProvider<EnrollmentCubit>.value(value: dependencies.enrollmentCubit),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+    return MultiBlocProvider(
+      providers: _blocProviders,
+      child: DevicePreview(
+        backgroundColor: AppTheme.darkTheme.colorScheme.surface,
+        isToolbarVisible: false,
+        builder:
+            (context) => MaterialApp.router(
+              locale: DevicePreview.locale(context),
+              builder: (context, child) {
+                return DevicePreview.appBuilder(context, child);
+              },
+              title: 'Edu App',
+              theme: AppTheme.darkTheme,
+              routerConfig: AppRouter.router,
+              debugShowCheckedModeBanner: false,
+            ),
+      ),
+    );
+  }
+}
+
+
+class _ActionButtons extends StatelessWidget {
+  final VoidCallback onEnterApp;
+  final VoidCallback onLaunchGitHub;
+  final VoidCallback onDownloadApk;
+  final bool isEnterAppDisabled;
+
+  const _ActionButtons({
+    required this.onEnterApp,
+    required this.onLaunchGitHub,
+    required this.onDownloadApk,
+    this.isEnterAppDisabled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double buttonWidth =
+            constraints.maxWidth > 360 ? 320.0 : constraints.maxWidth - 40;
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _AppButton(
+              onPressed: isEnterAppDisabled ? null : onEnterApp,
+              width: buttonWidth,
+            ),
+            const SizedBox(height: 20),
+            _DownloadApkButton(onPressed: onDownloadApk, width: buttonWidth),
+            const SizedBox(height: 20),
+            _GitHubButton(onPressed: onLaunchGitHub, width: buttonWidth),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AppButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final double? width;
+
+  const _AppButton({required this.onPressed, this.width});
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final bool isDisabled = onPressed == null;
+
+    return SizedBox(
+      width: width,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-          minimumSize: const Size(200, 60),
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor:
+              isDisabled
+                  ? colorScheme.onSurface.withOpacity(0.12)
+                  : colorScheme.primary,
+          foregroundColor:
+              isDisabled
+                  ? colorScheme.onSurface.withOpacity(0.38)
+                  : colorScheme.onPrimary,
+          minimumSize: const Size(0, 60),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(50),
           ),
-          elevation: 3,
+          elevation: isDisabled ? 0 : 3,
         ).copyWith(
-          overlayColor: WidgetStateProperty.all(
-            Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.1),
-          ),
+          overlayColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.pressed) && !isDisabled) {
+              return colorScheme.onPrimary.withAlpha(25);
+            }
+            return null;
+          }),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.rocket_launch, size: 24),
+            Icon(
+              Icons.rocket_launch,
+              size: 24,
+              color:
+                  isDisabled
+                      ? colorScheme.onSurface.withOpacity(0.38)
+                      : colorScheme.onPrimary,
+            ),
             const SizedBox(width: 12),
-            Text(
-              'Launch Edu App',
-              style: AppTextTheme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+            Flexible(
+              child: Text(
+                'Enter Edu App',
+                style: AppTextTheme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color:
+                      isDisabled
+                          ? colorScheme.onSurface.withOpacity(0.38)
+                          : colorScheme.onPrimary,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -339,39 +729,97 @@ class _AppButton extends StatelessWidget {
 
 class _GitHubButton extends StatelessWidget {
   final VoidCallback onPressed;
+  final double? width;
 
-  const _GitHubButton({required this.onPressed});
+  const _GitHubButton({required this.onPressed, this.width});
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        backgroundColor: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        minimumSize: const Size(200, 60),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        side: BorderSide(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
-          width: 1.5,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.code, size: 24),
-          const SizedBox(width: 12),
-          Text(
-            'Source Code',
-            style: AppTextTheme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      width: width,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: colorScheme.surfaceContainerHighest.withAlpha(77),
+          foregroundColor: colorScheme.onSurface,
+          minimumSize: const Size(0, 60),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          side: BorderSide(
+            color: colorScheme.primary.withAlpha(178),
+            width: 1.5,
           ),
-        ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.code, size: 24),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text(
+                'Source Code',
+                style: AppTextTheme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DownloadApkButton extends StatelessWidget {
+  final VoidCallback onPressed;
+  final double? width;
+
+  const _DownloadApkButton({required this.onPressed, this.width});
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    return SizedBox(
+      width: width,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: colorScheme.surfaceContainerHighest.withAlpha(77),
+          foregroundColor: colorScheme.onSurface,
+          minimumSize: const Size(0, 60),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          side: BorderSide(
+            color: colorScheme.secondary.withAlpha(178),
+            width: 1.5,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.download, size: 24),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text(
+                'Download APK',
+                style: AppTextTheme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -382,25 +830,32 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final isSmallScreen = MediaQuery.of(context).size.width < 600;
+
     return Column(
       children: [
         ShaderMask(
           shaderCallback:
               (bounds) => LinearGradient(
                 colors: [
-                  Theme.of(context).colorScheme.primary,
-                  Theme.of(context).colorScheme.secondary,
-                  Theme.of(context).colorScheme.tertiary,
+                  colorScheme.primary,
+                  colorScheme.secondary,
+                  colorScheme.tertiary,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ).createShader(bounds),
-          child: Text(
-            'AIVIL',
-            style: AppTextTheme.textTheme.displayLarge?.copyWith(
-              fontWeight: FontWeight.w900,
-              letterSpacing: -1.5,
-              fontSize: 72,
+          child: Hero(
+            tag: '',
+            child: Text(
+              'AIVIL',
+              style: AppTextTheme.textTheme.displayLarge?.copyWith(
+                fontWeight: FontWeight.w900,
+                letterSpacing: -1.5,
+                fontSize: isSmallScreen ? 60 : 72,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -410,6 +865,7 @@ class _Header extends StatelessWidget {
           style: AppTextTheme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.w300,
             letterSpacing: 2.0,
+            color: colorScheme.onSurface.withOpacity(0.8),
           ),
         ),
       ],
@@ -418,29 +874,226 @@ class _Header extends StatelessWidget {
 }
 
 class _LoadingOverlay extends StatelessWidget {
-  const _LoadingOverlay();
+  final double progress;
+  final String message;
+  final AppInitStep step;
+
+  const _LoadingOverlay({
+    required this.progress,
+    required this.message,
+    required this.step,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final totalSteps = AppInitStep.values.length - 1; 
+    final currentStepIndex = step.index;
+
+    return RepaintBoundary(
+      child: Container(
+        color: colorScheme.surface.withOpacity(0.9),
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 400),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ShaderMask(
+                  shaderCallback:
+                      (bounds) => LinearGradient(
+                        colors: [
+                          colorScheme.primary,
+                          colorScheme.secondary,
+                          colorScheme.tertiary,
+                        ],
+                      ).createShader(bounds),
+                  child: const Icon(
+                    Icons.school,
+                    size: 48,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Loading Edu App',
+                  style: AppTextTheme.textTheme.titleLarge?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                LinearProgressIndicator(
+                  value: progress,
+                  backgroundColor: colorScheme.surfaceContainerLow,
+                  color: colorScheme.primary,
+                  minHeight: 8,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  style: AppTextTheme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withOpacity(0.8),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${(progress * 100).toInt()}% complete',
+                  style: AppTextTheme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withOpacity(0.6),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(totalSteps, (index) {
+                    bool isActive = index < currentStepIndex;
+                    bool isCurrent = index == currentStepIndex - 1;
+                    double size = isCurrent ? 10 : 8;
+
+                    return Container(
+                      width: size,
+                      height: size,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color:
+                            isActive || isCurrent
+                                ? isCurrent
+                                    ? colorScheme.primary
+                                    : colorScheme.primary.withOpacity(0.6)
+                                : colorScheme.surfaceContainerLow,
+                        border:
+                            isCurrent
+                                ? Border.all(
+                                  color: colorScheme.primary.withOpacity(0.3),
+                                  width: 2,
+                                )
+                                : null,
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorDisplay extends StatelessWidget {
+  final dynamic error;
+
+  const _ErrorDisplay({required this.error});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(
-              color: Theme.of(context).colorScheme.primary,
-              strokeWidth: 3,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Launching Edu App...',
-              style: AppTextTheme.textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.error.withOpacity(0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Theme.of(context).colorScheme.error,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Unable to initialize the app. Please try refreshing the page.\nError: $error',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onErrorContainer,
+                fontSize: 14,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VerticalDivider extends StatelessWidget {
+  final double height;
+  final double thickness;
+
+  const _VerticalDivider({required this.height, this.thickness = 1.5});
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      height: height,
+      width: thickness,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            colorScheme.primary.withAlpha(51),
+            colorScheme.primary,
+            colorScheme.secondary,
+            colorScheme.tertiary.withAlpha(51),
           ],
         ),
+        borderRadius: BorderRadius.circular(thickness / 2),
+      ),
+    );
+  }
+}
+
+class _HorizontalDivider extends StatelessWidget {
+  final double thickness;
+
+  const _HorizontalDivider({this.thickness = 1.5});
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      height: thickness,
+      width: MediaQuery.of(context).size.width * 0.7,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            colorScheme.primary.withAlpha(51),
+            colorScheme.primary,
+            colorScheme.secondary,
+            colorScheme.tertiary.withAlpha(51),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(thickness / 2),
       ),
     );
   }

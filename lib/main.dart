@@ -7,28 +7,28 @@ import 'package:edu_app/features/course/cubit/course_cubit.dart';
 import 'package:edu_app/features/course/cubit/enrollment_cubit.dart';
 import 'package:edu_app/features/course/cubit/professor_cubit.dart';
 import 'package:edu_app/features/course/cubit/student_cubit.dart';
-import 'package:edu_app/features/web/edu_app_web.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/router/app_router.dart';
+import 'package:edu_app/features/web/edu_app_web.dart' as web;
+import 'package:flutter/foundation.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await EnvConfig.load();
-  await _initializeFirebase();
-
-  if (!const bool.fromEnvironment('dart.vm.product')) {
-    Bloc.observer = AppBlocObserver();
-  }
-
-  final dependencies = await AppDependencies.initialize();
-
   if (kIsWeb) {
-    runApp(EduAppWeb(dependencies: dependencies));
+    web.main();
   } else {
+    WidgetsFlutterBinding.ensureInitialized();
+    await EnvConfig.load();
+    await _initializeFirebase();
+
+    if (!const bool.fromEnvironment('dart.vm.product')) {
+      Bloc.observer = AppBlocObserver();
+    }
+
+    final dependencies = await AppDependencies.initialize();
+
     runApp(EduApp(dependencies: dependencies));
   }
 }

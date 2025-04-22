@@ -185,9 +185,7 @@ class AuthRepository {
       await _firestore.collection(_userCollection).doc(uid).update({
         'lastLogin': FieldValue.serverTimestamp(),
       });
-    } catch (e) {
-      // Consider logging error to a more robust logging service in production
-    }
+    } catch (e) {}
   }
 
   Future<UserPermissionLevel> _determineUserPermissionLevel(
@@ -209,7 +207,6 @@ class AuthRepository {
         orElse: () => UserPermissionLevel.student,
       );
     } catch (e) {
-      // Consider logging error to a more robust logging service in production
       return UserPermissionLevel.student;
     }
   }

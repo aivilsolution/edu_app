@@ -13,7 +13,6 @@ abstract interface class CourseRepository {
 
 class FirebaseCourseRepository implements CourseRepository {
   static const _coursesCollection = 'courses';
-
   final FirebaseFirestore _firestore;
   late final CollectionReference _coursesRef;
 
@@ -37,14 +36,20 @@ class FirebaseCourseRepository implements CourseRepository {
   Stream<List<Course>> watchAll() => _coursesRef
       .orderBy('createdAt', descending: true)
       .snapshots()
-      .map((snapshot) => snapshot.docs.map(Course.fromFirestore).toList());
+      .map(
+        (snapshot) =>
+            snapshot.docs.map((doc) => Course.fromFirestore(doc)).toList(),
+      );
 
   @override
   Stream<List<Course>> watchByProfessor(String professorId) => _coursesRef
       .where('professorId', isEqualTo: professorId)
       .orderBy('createdAt', descending: true)
       .snapshots()
-      .map((snapshot) => snapshot.docs.map(Course.fromFirestore).toList());
+      .map(
+        (snapshot) =>
+            snapshot.docs.map((doc) => Course.fromFirestore(doc)).toList(),
+      );
 
   @override
   Future<void> create(Course course) async {

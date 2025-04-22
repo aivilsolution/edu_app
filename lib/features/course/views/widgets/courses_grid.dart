@@ -1,27 +1,23 @@
+import 'package:edu_app/features/course/models/course.dart';
+import 'package:edu_app/features/course/views/widgets/course_card.dart';
 import 'package:edu_app/shared/widgets/custom_app_bar.dart';
 import '/features/course/views/screens/course_page.dart';
-import '/shared/widgets/course_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '/features/course/cubit/course_cubit.dart';
 import '/features/course/cubit/course_state.dart';
-import '../../../course/models/course.dart';
 
-class CoursesGridView extends StatefulWidget {
+class CoursesGrid extends StatefulWidget {
   final int crossAxisCount;
   final double spacing;
 
-  const CoursesGridView({
-    super.key,
-    this.crossAxisCount = 2,
-    this.spacing = 16.0,
-  });
+  const CoursesGrid({super.key, this.crossAxisCount = 2, this.spacing = 16.0});
 
   @override
-  State<CoursesGridView> createState() => _CoursesGridViewState();
+  State createState() => _CoursesGridState();
 }
 
-class _CoursesGridViewState extends State<CoursesGridView> {
+class _CoursesGridState extends State<CoursesGrid> {
   @override
   void initState() {
     super.initState();
@@ -49,7 +45,7 @@ class _CoursesGridViewState extends State<CoursesGridView> {
                         (context) => CoursePage(courseId: courses[index].id),
                   ),
                 ),
-            child: CourseCard(name: courses[index].name),
+            child: CourseCard(name: courses[index].name, index: index),
           );
         },
       ),

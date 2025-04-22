@@ -1,6 +1,7 @@
 import 'package:edu_app/features/auth/auth.dart';
 import 'package:edu_app/features/communication/cubit/message_cubit.dart';
 import 'package:edu_app/features/communication/cubit/message_state.dart';
+import 'package:edu_app/features/communication/livekit/pages/connect.dart';
 import 'package:edu_app/features/communication/models/message.dart';
 import 'package:edu_app/features/communication/models/user.dart';
 import 'package:edu_app/features/communication/utils/debouncer.dart';
@@ -128,6 +129,34 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.call_rounded),
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => ConnectPage(
+                          recipientId: widget.user.uid,
+                          videoCall: false,
+                        ),
+                  ),
+                ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam_rounded),
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => ConnectPage(
+                          recipientId: widget.user.uid,
+                          videoCall: true,
+                        ),
+                  ),
+                ),
+          ),
           IconButton(
             icon: const Icon(Icons.more_vert),
             onPressed: () {
